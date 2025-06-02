@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@property --percentage {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@keyframes loading-item {
+  0% {
+    --percentage: 100%;
+  }
+  100% {
+    --percentage: 0%;
+  }
+}
+@keyframes loading-last {
+  0% {
+    --percentage: 100%;
+  }
+  20% {
+    --percentage: 50%;
+  }
+  90% {
+    --percentage: 50%;
+  }
+  100% {
+    --percentage: 0%;
+  }
+}
+
+.loading-icon {
+  --percentage: 100%;
+  --duration: 200ms;
+  width: 48px;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  animation-name: loading-item;
+  animation-timing-function: linear;
+  animation-duration: var(--duration);
+  animation-delay: calc(var(--i) * var(--duration));
+  animation-fill-mode: forwards;
+}
+.loading-icon.is-last {
+  animation-duration: calc(5 * var(--duration));
+  animation-name: loading-last;
+}
+.loading-icon::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--url) no-repeat center / contain;
+  filter: brightness(0%) opacity(10%) grayscale(100%);
+  mix-blend-mode: normal;
+  z-index: 1;
+}
+.loading-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--url) no-repeat center / contain;
+  filter: brightness(100%);
+  z-index: 2;
+  clip-path: inset(0% var(--percentage) 0% 0%);
+}

@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["DOM", "ESNext", "ESNext.Array", "ESNext.AsyncIterable", "WebWorker"],
+    "baseUrl": ".",
+    "rootDir": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": [
+    "index.html",
+    "types/**/*.d.ts",
+    "src/**/*.ts",
+    "src/**/*.vue"
+  ]
+}

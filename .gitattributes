@@ -1,0 +1,10 @@
+# 覆盖行终止符
+*.vue text eol=lf
+*.ts text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+
+# 忽略生成文件的修改统计
+pnpm-lock.yaml linguist-generated=true
+auto-import.d.ts linguist-generated=true
