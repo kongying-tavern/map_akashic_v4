@@ -1,71 +1,72 @@
 @import "tailwindcss";
 
-@property --percentage {
-  syntax: '<percentage>';
+#app {
+  container-type: size;
+}
+
+@property --clip {
+  syntax: '<length-percentage>';
   inherits: true;
   initial-value: 0%;
 }
 
-@keyframes loading-item {
-  0% {
-    --percentage: 100%;
-  }
-  100% {
-    --percentage: 0%;
-  }
+#loading {
+  /* 图标的基准大小 */
+  --size: min(48px, round(up, calc(100cqw / 35 * 3), 1px));
+  /* 图标间距 */
+  --gap: round(up, calc(var(--size) / 3), 1px);
+  /* 背景图资源 */
+  --bg:
+    url('/icons/pyro.svg') no-repeat 0% 50% / contain,
+    url('/icons/hydro.svg') no-repeat calc(var(--size) + var(--gap)) 50% / contain,
+    url('/icons/anemo.svg') no-repeat calc(var(--size) * 2 + var(--gap) * 2) 50% / contain,
+    url('/icons/electro.svg') no-repeat 50% 50% / contain,
+    url('/icons/dendro.svg') no-repeat calc(100% - var(--size) * 2 - var(--gap) * 2) 50% / contain,
+    url('/icons/cryo.svg') no-repeat calc(100% - var(--size) - var(--gap)) 50% / contain,
+    url('/icons/geo.svg') no-repeat 100% 50% / contain;
+
+  width: calc(var(--size) * 7 + var(--gap) * 6);
+  height: var(--size);
+  position: relative;
+  animation: first-loading linear 2s forwards;
 }
-@keyframes loading-last {
+
+@keyframes first-loading {
   0% {
-    --percentage: 100%;
+    --clip: 100%;
   }
   20% {
-    --percentage: 50%;
+    --clip: calc(var(--size) / 2);
   }
-  90% {
-    --percentage: 50%;
+  95% {
+    --clip: calc(var(--size) / 2);
   }
   100% {
-    --percentage: 0%;
+    --clip: 0%;
   }
 }
 
-.loading-icon {
-  --percentage: 100%;
-  --duration: 200ms;
-  width: 48px;
-  aspect-ratio: 1 / 1;
-  position: relative;
-  animation-name: loading-item;
-  animation-timing-function: linear;
-  animation-duration: var(--duration);
-  animation-delay: calc(var(--i) * var(--duration));
-  animation-fill-mode: forwards;
-}
-.loading-icon.is-last {
-  animation-duration: calc(5 * var(--duration));
-  animation-name: loading-last;
-}
-.loading-icon::before {
+#loading::before {
   content: '';
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  background: var(--url) no-repeat center / contain;
+  background: var(--bg);
   filter: brightness(0%) opacity(10%) grayscale(100%);
-  mix-blend-mode: normal;
   z-index: 1;
 }
-.loading-icon::after {
+
+#loading::after {
   content: '';
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  background: var(--url) no-repeat center / contain;
+  background: var(--bg);
   filter: brightness(100%);
   z-index: 2;
-  clip-path: inset(0% var(--percentage) 0% 0%);
+  clip-path: inset(0% var(--clip) 0% 0%);
 }
