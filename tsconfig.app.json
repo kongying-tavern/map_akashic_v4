@@ -3,6 +3,7 @@
     "composite": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "target": "esnext",
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": ["DOM", "ESNext", "ESNext.Array", "ESNext.AsyncIterable", "WebWorker"],
