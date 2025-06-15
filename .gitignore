@@ -7,3 +7,7 @@ node_modules
 # local envs
 .env.local
 .env.*.local
+
+# os file
+.DS_Store
+Microsoft
