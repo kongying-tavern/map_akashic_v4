@@ -1,15 +1,15 @@
 {
   "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
-    "composite": true,
     "incremental": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "composite": true,
     "baseUrl": ".",
     "rootDir": ".",
-    "types": ["node"]
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "strict": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "vite.config.ts",

@@ -1,21 +1,28 @@
 {
   "name": "map_akashic_v4",
-  "version": "0.0.1",
-  "description": "原神互动地图 v4",
-  "private": "true",
   "type": "module",
+  "version": "0.0.1",
+  "private": "true",
+  "packageManager": "pnpm@10.11.0",
+  "description": "原神互动地图 v4",
+  "author": "Kongying Tavern",
+  "license": "MIT",
   "scripts": {
     "prepare": "husky",
     "dev": "vite",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
+    "check:type": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "cz": "czg emoji"
   },
-  "author": "Kongying Tavern",
-  "license": "MIT",
-  "packageManager": "pnpm@10.11.0",
+  "dependencies": {
+    "alova": "^3.3.4",
+    "pinia": "^3.0.2",
+    "vue": "^3.5.16"
+  },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.13.2",
+    "@alova/wormhole": "^1.2.0",
+    "@antfu/eslint-config": "^5.2.1",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@tailwindcss/vite": "^4.1.8",
@@ -24,16 +31,14 @@
     "@vitejs/plugin-vue": "^5.2.4",
     "@vue/tsconfig": "^0.7.0",
     "czg": "^1.11.1",
+    "eslint": "^9.34.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
     "tailwindcss": "^4.1.8",
     "typescript": "^5.8.3",
     "unplugin-auto-import": "^19.3.0",
-    "vite": "npm:rolldown-vite@latest"
-  },
-  "dependencies": {
-    "pinia": "^3.0.2",
-    "vue": "^3.5.16"
+    "vite": "npm:rolldown-vite@latest",
+    "vue-tsc": "^3.0.6"
   },
   "lint-staged": {
     "*.{vue,js,ts,json,html}": "eslint --fix"

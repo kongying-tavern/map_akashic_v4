@@ -2,10 +2,11 @@ import path from 'node:path'
 import Tailwindcss from '@tailwindcss/vite'
 import Vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import { version } from './package.json'
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, path.resolve('envs')) as unknown as ImportMetaEnv
   return {
     base: './',
 
@@ -18,6 +19,16 @@ export default defineConfig(() => {
     server: {
       // 原神上线于 2020 年 9 月 28 日
       port: 20928,
+      proxy: {
+        [env.VITE_API_BASE]: {
+          target: env.VITE_API_TARGET,
+          changeOrigin: true,
+          rewrite: (path) => {
+            console.log('[target]', path.replace(env.VITE_API_BASE, ''))
+            return path.replace(env.VITE_API_BASE, '')
+          },
+        },
+      },
     },
 
     resolve: {

@@ -1,11 +1,6 @@
-import antfu from '@antfu/eslint-config'
+import defineConfig from '@antfu/eslint-config'
 
-export default antfu({
-  typescript: true,
-  vue: true,
-  jsonc: false,
-  yaml: false,
-
+export default defineConfig({
   ignores: [
     '.vscode',
     'dist',
@@ -16,28 +11,11 @@ export default antfu({
     indent: 2,
     quotes: 'single',
     jsx: false,
+    semi: false,
   },
 
-  rules: {
-    // 顶层函数允许使用箭头函数
-    'antfu/top-level-function': 'off',
-
-    // 断行符号使用 LF
-    'style/linebreak-style': ['error', 'unix'],
-
-    // 文件末尾保留空行
-    'style/eol-last': 'error',
-  },
-
-  overrides: {
-    javascript: {
-      // 一般情况下不允许使用 console
-      'no-console': 'warn',
-
-      // 默认参数必须放在最后
-      'default-param-last': 'error',
-    },
-    typescript: {
+  typescript: {
+    overrides: {
       // 一般情况下不允许使用 any
       'ts/no-explicit-any': 'warn',
 
@@ -76,8 +54,10 @@ export default antfu({
         },
       ],
     },
+  },
 
-    vue: {
+  vue: {
+    overrides: {
       // 组件名称至少由 2 个单词组成
       'vue/multi-word-component-names': 'error',
 
@@ -98,5 +78,18 @@ export default antfu({
         },
       ],
     },
+  },
+
+  rules: {
+    // 顶层函数允许使用箭头函数
+    'antfu/top-level-function': 'off',
+
+    // 断行符号使用 LF
+    'style/linebreak-style': ['error', 'unix'],
+
+    // 文件末尾保留空行
+    'style/eol-last': 'error',
+
+    'eslint-comments/no-unlimited-disable': ['off'],
   },
 })

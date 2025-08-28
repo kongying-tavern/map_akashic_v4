@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
-    "rootDir": "."
+    "rootDir": ".",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "files": []
 }
