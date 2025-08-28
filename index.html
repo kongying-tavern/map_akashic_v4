@@ -7,20 +7,27 @@
   <link rel="icon" href="/favicon.png">
   <link rel="stylesheet" href="./src/styles/index.css">
 </head>
-<body class="w-[100dvw] h-[100dvh] overflow-hidden grid place-content-center">
+<body class="grid">
+  <!-- 首屏 loading -->
   <div id="loading"></div>
-  <div id="app" class="w-[100dvw] h-[100dvh] overflow-hidden hidden"></div>
+
+  <!-- 应用容器 -->
+  <div id="app" class="hidden"></div>
+
+  <!-- 初始化 JS -->
   <script type="module">
     const app = document.getElementById('app')
     const firstLoading = document.getElementById('loading')
     const firstLoadingAnimation = new Promise((resolve) => {
       firstLoading.addEventListener('animationend', resolve)
     })
+    // 至少等待 loading 动画播放完毕后才进入应用
     Promise.all([
       import('./src/main.ts'),
       firstLoadingAnimation,
     ]).then(() => {
       firstLoading.remove()
+      document.body.classList.remove('grid')
       app.classList.remove('hidden')
     })
   </script>

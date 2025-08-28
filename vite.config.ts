@@ -1,6 +1,6 @@
 import path from 'node:path'
-import Tailwindcss from '@tailwindcss/vite'
 import Vue from '@vitejs/plugin-vue'
+import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import { defineConfig, loadEnv } from 'vite'
 import { version } from './package.json'
@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
 
     plugins: [
       Vue(),
-      Tailwindcss(),
+      UnoCSS(),
       AutoImport({
         dts: path.resolve(__dirname, 'types/auto-import.d.ts'),
         imports: ['vue'],

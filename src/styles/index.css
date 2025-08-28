@@ -1,7 +1,27 @@
-@import "tailwindcss";
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100dvw;
+  height: 100dvh;
+  overflow: hidden;
+}
+body.grid {
+  display: grid;
+  place-content: center;
+  place-items: center;
+}
 
 #app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   container-type: size;
+}
+#app.hidden {
+  display: none;
 }
 
 @property --clip {
