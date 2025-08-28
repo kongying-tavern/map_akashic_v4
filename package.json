@@ -10,8 +10,8 @@
   "scripts": {
     "prepare": "husky",
     "dev": "vite",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
+    "lint": "eslint --concurrency=auto",
+    "lint:fix": "eslint --concurrency=auto --fix",
     "check:type": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "cz": "czg emoji"
   },
@@ -41,6 +41,11 @@
     "vue-tsc": "^3.0.6"
   },
   "lint-staged": {
-    "*.{vue,js,ts,json,html}": "eslint --fix"
+    "*.{vue,js,ts}": [
+      "pnpm check:type"
+    ],
+    "*.{vue,js,ts,json,html}": [
+      "pnpm lint:fix"
+    ]
   }
 }
