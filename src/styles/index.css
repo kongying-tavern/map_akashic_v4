@@ -48,7 +48,7 @@ body.grid {
   width: calc(var(--size) * 7 + var(--gap) * 6);
   height: var(--size);
   position: relative;
-  animation: first-loading linear 2s forwards;
+  animation: first-loading linear var(--dutation) forwards;
 }
 
 @keyframes first-loading {
