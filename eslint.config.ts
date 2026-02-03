@@ -5,6 +5,7 @@ export default defineConfig({
     '.vscode',
     'dist',
     'node_modules',
+    'api/global.d.ts',
   ],
 
   stylistic: {

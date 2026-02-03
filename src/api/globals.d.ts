@@ -88,53 +88,6 @@ type Alova2Method<
       >
     : never;
 
-export interface TagTypeVo {
-  /**
-   * 乐观锁
-   * ---
-   */
-  version?: number;
-  /**
-   * ID
-   * ---
-   */
-  id?: number;
-  /**
-   * 创建人
-   * ---
-   */
-  creatorId?: number;
-  /**
-   * 创建时间
-   * ---
-   */
-  createTime?: string;
-  /**
-   * 更新人
-   * ---
-   */
-  updaterId?: number;
-  /**
-   * 更新时间
-   * ---
-   */
-  updateTime?: string;
-  /**
-   * 分类名称
-   * ---
-   */
-  name?: string;
-  /**
-   * 父级分类ID（-1为根分类）
-   * ---
-   */
-  parentId?: number;
-  /**
-   * 是否为末端类型
-   * ---
-   */
-  isFinal?: boolean;
-}
 export interface RouteVo {
   /**
    * 乐观锁
@@ -214,6 +167,79 @@ export interface ResourceUploadVo {
    */
   fileUrl?: string;
 }
+export interface Underground {
+  /**
+   * 是否是分层层级
+   * ---
+   */
+  is_underground?: boolean;
+  /**
+   * 是否是非地面层级
+   * ---
+   */
+  is_global?: boolean;
+  /**
+   * 分层区域
+   * ---
+   * 分层区域标签
+   */
+  region_levels?: string[];
+}
+export interface IconOverride {
+  /**
+   * 图标ID
+   * ---
+   */
+  id?: number;
+  /**
+   * 最小可见缩放级别
+   * ---
+   * 最小可见缩放级别，大于该值可见
+   */
+  minZoom?: number;
+  /**
+   * 最大可见缩放级别
+   * ---
+   * 最大可见缩放级别，小于该值可见
+   */
+  maxZoom?: number;
+}
+export interface V2_8_Island {
+  /**
+   * 海岛名
+   * ---
+   */
+  island_name?: string;
+  /**
+   * 海岛状态
+   * ---
+   * 海岛状态标签
+   */
+  island_state?: string[];
+}
+export interface MarkerExtraVo {
+  /**
+   * 分层层级数据
+   * ---
+   */
+  underground?: Underground;
+  /**
+   * 图标覆盖数据
+   * ---
+   */
+  iconOverride?: IconOverride;
+  /**
+   * 1.6 海岛数据
+   * ---
+   * 海岛阶段数组
+   */
+  '1_6_island'?: string[];
+  /**
+   * 2.8 海岛数据
+   * ---
+   */
+  '2_8_island'?: V2_8_Island;
+}
 export interface MarkerPunctuateVo {
   /**
    * 乐观锁
@@ -276,10 +302,10 @@ export interface MarkerPunctuateVo {
    */
   content?: string;
   /**
-   * 额外特殊字段
+   * 点位附加数据前端封装
    * ---
    */
-  extra?: Record<string, object>;
+  extra?: MarkerExtraVo;
   /**
    * 点位图片
    * ---
@@ -405,10 +431,10 @@ export interface MarkerItemLinkVo {
    */
   count?: number;
   /**
-   * 图标标签
+   * 图标ID
    * ---
    */
-  iconTag?: string;
+  iconId?: number;
 }
 export interface MarkerVo {
   /**
@@ -497,10 +523,10 @@ export interface MarkerVo {
    */
   hiddenFlag?: number;
   /**
-   * 额外特殊字段
+   * 点位附加数据前端封装
    * ---
    */
-  extra?: Record<string, object>;
+  extra?: MarkerExtraVo;
   /**
    * 点位关联组ID
    * ---
@@ -539,10 +565,10 @@ export interface ItemTypeVo {
    */
   updateTime?: string;
   /**
-   * 图标标签
+   * 图标ID
    * ---
    */
-  iconTag?: string;
+  iconId?: number;
   /**
    * 类型名
    * ---
@@ -631,10 +657,10 @@ export interface ItemVo {
    */
   defaultCount?: number;
   /**
-   * 图标标签
+   * 图标ID
    * ---
    */
-  iconTag?: string;
+  iconId?: number;
   /**
    * 图标样式类型
    * ---
@@ -750,10 +776,10 @@ export interface IconVo {
    */
   updateTime?: string;
   /**
-   * 图标名称
+   * 图标标签
    * ---
    */
-  name?: string;
+  tag?: string;
   /**
    * 图标类型ID列表
    * ---
@@ -764,6 +790,16 @@ export interface IconVo {
    * ---
    */
   url?: string;
+  /**
+   * 图标变体url
+   * ---
+   */
+  urlVariants?: Record<string, string>;
+  /**
+   * 图标描述
+   * ---
+   */
+  description?: string;
 }
 export interface AreaVo {
   /**
@@ -812,10 +848,10 @@ export interface AreaVo {
    */
   content?: string;
   /**
-   * 图标标签
+   * 图标ID
    * ---
    */
-  iconTag?: string;
+  iconId?: number;
   /**
    * 父级地区ID（无父级则为-1）
    * ---
@@ -1185,92 +1221,6 @@ export interface SysActionLogSearchVo {
    */
   sort?: string[];
 }
-export interface PageAndTypeSearchVo {
-  /**
-   * 当前页，从1开始
-   * ---
-   */
-  current?: number;
-  /**
-   * 每页大小，默认为10
-   * ---
-   */
-  size?: number;
-  /**
-   * 父级类型ID列表
-   * ---
-   */
-  typeIdList?: number[];
-}
-export interface TagVo {
-  /**
-   * 乐观锁
-   * ---
-   */
-  version?: number;
-  /**
-   * 创建人
-   * ---
-   */
-  creatorId?: number;
-  /**
-   * 创建时间
-   * ---
-   */
-  createTime?: string;
-  /**
-   * 更新人
-   * ---
-   */
-  updaterId?: number;
-  /**
-   * 更新时间
-   * ---
-   */
-  updateTime?: string;
-  /**
-   * 标签名
-   * ---
-   */
-  tag?: string;
-  /**
-   * 标签类型ID列表
-   * ---
-   */
-  typeIdList?: number[];
-  /**
-   * 图标ID
-   * ---
-   */
-  iconId?: number;
-  /**
-   * 图标url
-   * ---
-   */
-  url?: string;
-}
-export interface TagSearchVo {
-  /**
-   * 标签名列表
-   * ---
-   */
-  tagList?: string[];
-  /**
-   * 图标标签分类列表
-   * ---
-   */
-  typeIdList?: number[];
-  /**
-   * 当前页，从1开始
-   * ---
-   */
-  current?: number;
-  /**
-   * 每页大小，默认为10
-   * ---
-   */
-  size?: number;
-}
 export interface ScoreParamsVo {
   /**
    * 统计范围
@@ -1589,6 +1539,11 @@ export interface TweakVo {
 }
 export interface MarkerSearchVo {
   /**
+   * 点位ID列表
+   * ---
+   */
+  markerIdList?: number[];
+  /**
    * 地区ID列表
    * ---
    */
@@ -1621,6 +1576,11 @@ export interface ItemSearchVo {
    */
   name?: string;
   /**
+   * 特殊标记
+   * ---
+   */
+  specialFlag?: number;
+  /**
    * 当前页，从1开始
    * ---
    */
@@ -1635,6 +1595,23 @@ export interface ItemSearchVo {
    * ---
    */
   sort?: string[];
+}
+export interface PageAndTypeSearchVo {
+  /**
+   * 当前页，从1开始
+   * ---
+   */
+  current?: number;
+  /**
+   * 每页大小，默认为10
+   * ---
+   */
+  size?: number;
+  /**
+   * 父级类型ID列表
+   * ---
+   */
+  typeIdList?: number[];
 }
 export interface IconSearchVo {
   /**
@@ -1658,10 +1635,10 @@ export interface IconSearchVo {
    */
   typeIdList?: number[];
   /**
-   * 图标名
+   * 图标标签
    * ---
    */
-  name?: string;
+  tag?: string;
   /**
    * 当前页，从1开始
    * ---
@@ -2179,58 +2156,6 @@ export interface RPageListVoSysActionLogVo {
   users?: Record<string, SysUserSmallVo>;
   time?: string;
 }
-export interface PageListVoTagTypeVo {
-  record?: TagTypeVo[];
-  total?: number;
-  size?: number;
-}
-export interface RPageListVoTagTypeVo {
-  error?: boolean;
-  errorStatus?: number;
-  errorData?: object;
-  message?: string;
-  /**
-   * 分页记录前端封装
-   * ---
-   * 分页记录前端封装
-   */
-  data?: PageListVoTagTypeVo;
-  users?: Record<string, SysUserSmallVo>;
-  time?: string;
-}
-export interface RTagVo {
-  error?: boolean;
-  errorStatus?: number;
-  errorData?: object;
-  message?: string;
-  /**
-   * Tag前端封装
-   * ---
-   * 图标标签主表前端封装
-   */
-  data?: TagVo;
-  users?: Record<string, SysUserSmallVo>;
-  time?: string;
-}
-export interface PageListVoTagVo {
-  record?: TagVo[];
-  total?: number;
-  size?: number;
-}
-export interface RPageListVoTagVo {
-  error?: boolean;
-  errorStatus?: number;
-  errorData?: object;
-  message?: string;
-  /**
-   * 分页记录前端封装
-   * ---
-   * 分页记录前端封装
-   */
-  data?: PageListVoTagVo;
-  users?: Record<string, SysUserSmallVo>;
-  time?: string;
-}
 export interface RObject {
   error?: boolean;
   errorStatus?: number;
@@ -2502,10 +2427,10 @@ export interface ItemAreaPublicVo {
    */
   defaultCount?: number;
   /**
-   * 图标标签
+   * 图标ID
    * ---
    */
-  iconTag?: string;
+  iconId?: number;
   /**
    * 图标样式类型
    * ---
@@ -2673,7 +2598,7 @@ export interface HistoryVo {
    */
   md5?: string;
   /**
-   * 操作数据类型;1地区; 2图标; 3物品; 4点位; 5标签
+   * 操作数据类型;1地区; 2图标; 3物品; 4点位;
    * ---
    */
   type?: number;
@@ -3336,722 +3261,6 @@ declare global {
         config: Config
       ): Alova2Method<RSysArchiveVo, 'archive.restoreArchive', Config>;
     };
-    tag_type: {
-      /**
-       * ---
-       *
-       * [PUT] 新增分类
-       *
-       * **path:** /api/tag_type/add
-       *
-       * ---
-       *
-       * **RequestBody**
-       * ```ts
-       * type RequestBody = {
-       *   // [title] 乐观锁
-       *   version?: number
-       *   // [title] ID
-       *   id?: number
-       *   // [title] 创建人
-       *   creatorId?: number
-       *   // [title] 创建时间
-       *   createTime?: string
-       *   // [title] 更新人
-       *   updaterId?: number
-       *   // [title] 更新时间
-       *   updateTime?: string
-       *   // [title] 分类名称
-       *   name?: string
-       *   // [title] 父级分类ID（-1为根分类）
-       *   parentId?: number
-       *   // [title] 是否为末端类型
-       *   isFinal?: boolean
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   data?: number
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      addTagType<
-        Config extends Alova2MethodConfig<RLong> & {
-          data: TagTypeVo;
-        }
-      >(
-        config: Config
-      ): Alova2Method<RLong, 'tag_type.addTagType', Config>;
-      /**
-       * ---
-       *
-       * [POST] 修改分类
-       *
-       * **path:** /api/tag_type/update
-       *
-       * ---
-       *
-       * **RequestBody**
-       * ```ts
-       * type RequestBody = {
-       *   // [title] 乐观锁
-       *   version?: number
-       *   // [title] ID
-       *   id?: number
-       *   // [title] 创建人
-       *   creatorId?: number
-       *   // [title] 创建时间
-       *   createTime?: string
-       *   // [title] 更新人
-       *   updaterId?: number
-       *   // [title] 更新时间
-       *   updateTime?: string
-       *   // [title] 分类名称
-       *   name?: string
-       *   // [title] 父级分类ID（-1为根分类）
-       *   parentId?: number
-       *   // [title] 是否为末端类型
-       *   isFinal?: boolean
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   data?: boolean
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      updateTagType<
-        Config extends Alova2MethodConfig<RBoolean> & {
-          data: TagTypeVo;
-        }
-      >(
-        config: Config
-      ): Alova2Method<RBoolean, 'tag_type.updateTagType', Config>;
-      /**
-       * ---
-       *
-       * [POST] 列出分类
-       *
-       * **path:** /api/tag_type/get/list
-       *
-       * ---
-       *
-       * **RequestBody**
-       * ```ts
-       * type RequestBody = {
-       *   // [title] 当前页，从1开始
-       *   current?: number
-       *   // [title] 每页大小，默认为10
-       *   size?: number
-       *   // [title] 父级类型ID列表
-       *   // [items] start
-       *   // [title] 父级类型ID列表
-       *   // [items] end
-       *   typeIdList?: number[]
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   // [title] 分页记录前端封装
-       *   // 分页记录前端封装
-       *   data?: {
-       *     // [items] start
-       *     // [title] TagType前端封装
-       *     // 图标标签分类表前端封装
-       *     // [items] end
-       *     record?: Array<{
-       *       // [title] 乐观锁
-       *       version?: number
-       *       // [title] ID
-       *       id?: number
-       *       // [title] 创建人
-       *       creatorId?: number
-       *       // [title] 创建时间
-       *       createTime?: string
-       *       // [title] 更新人
-       *       updaterId?: number
-       *       // [title] 更新时间
-       *       updateTime?: string
-       *       // [title] 分类名称
-       *       name?: string
-       *       // [title] 父级分类ID（-1为根分类）
-       *       parentId?: number
-       *       // [title] 是否为末端类型
-       *       isFinal?: boolean
-       *     }>
-       *     total?: number
-       *     size?: number
-       *   }
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      listTagType<
-        Config extends Alova2MethodConfig<RPageListVoTagTypeVo> & {
-          data: PageAndTypeSearchVo;
-        }
-      >(
-        config: Config
-      ): Alova2Method<RPageListVoTagTypeVo, 'tag_type.listTagType', Config>;
-      /**
-       * ---
-       *
-       * [DELETE] 删除分类
-       *
-       * **path:** /api/tag_type/delete/{typeId}
-       *
-       * ---
-       *
-       * **Path Parameters**
-       * ```ts
-       * type PathParameters = {
-       *   typeId: number
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   data?: boolean
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      deleteTagType<
-        Config extends Alova2MethodConfig<RBoolean> & {
-          pathParams: {
-            typeId: number;
-          };
-        }
-      >(
-        config: Config
-      ): Alova2Method<RBoolean, 'tag_type.deleteTagType', Config>;
-    };
-    tag: {
-      /**
-       * ---
-       *
-       * [PUT] 创建标签
-       *
-       * **path:** /api/tag/{tagName}
-       *
-       * ---
-       *
-       * **Path Parameters**
-       * ```ts
-       * type PathParameters = {
-       *   tagName: string
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   data?: boolean
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      createTag<
-        Config extends Alova2MethodConfig<RBoolean> & {
-          pathParams: {
-            tagName: string;
-          };
-        }
-      >(
-        config: Config
-      ): Alova2Method<RBoolean, 'tag.createTag', Config>;
-      /**
-       * ---
-       *
-       * [DELETE] 删除标签
-       *
-       * **path:** /api/tag/{tagName}
-       *
-       * ---
-       *
-       * **Path Parameters**
-       * ```ts
-       * type PathParameters = {
-       *   tagName: string
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   data?: boolean
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      deleteTag<
-        Config extends Alova2MethodConfig<RBoolean> & {
-          pathParams: {
-            tagName: string;
-          };
-        }
-      >(
-        config: Config
-      ): Alova2Method<RBoolean, 'tag.deleteTag', Config>;
-      /**
-       * ---
-       *
-       * [POST] 修改标签关联
-       *
-       * **path:** /api/tag/{tagName}/{iconId}
-       *
-       * ---
-       *
-       * **Path Parameters**
-       * ```ts
-       * type PathParameters = {
-       *   tagName: string
-       *   iconId: number
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   data?: boolean
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      updateTag<
-        Config extends Alova2MethodConfig<RBoolean> & {
-          pathParams: {
-            tagName: string;
-            iconId: number;
-          };
-        }
-      >(
-        config: Config
-      ): Alova2Method<RBoolean, 'tag.updateTag', Config>;
-      /**
-       * ---
-       *
-       * [POST] 修改标签的分类信息
-       *
-       * **path:** /api/tag/updateType
-       *
-       * ---
-       *
-       * **RequestBody**
-       * ```ts
-       * type RequestBody = {
-       *   // [title] 乐观锁
-       *   version?: number
-       *   // [title] 创建人
-       *   creatorId?: number
-       *   // [title] 创建时间
-       *   createTime?: string
-       *   // [title] 更新人
-       *   updaterId?: number
-       *   // [title] 更新时间
-       *   updateTime?: string
-       *   // [title] 标签名
-       *   tag?: string
-       *   // [title] 标签类型ID列表
-       *   // [items] start
-       *   // [title] 标签类型ID列表
-       *   // [items] end
-       *   typeIdList?: number[]
-       *   // [title] 图标ID
-       *   iconId?: number
-       *   // [title] 图标url
-       *   url?: string
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   data?: boolean
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      updateTypeInTag<
-        Config extends Alova2MethodConfig<RBoolean> & {
-          data: TagVo;
-        }
-      >(
-        config: Config
-      ): Alova2Method<RBoolean, 'tag.updateTypeInTag', Config>;
-      /**
-       * ---
-       *
-       * [POST] 获取单个标签信息
-       *
-       * **path:** /api/tag/get/single/{name}
-       *
-       * ---
-       *
-       * **Path Parameters**
-       * ```ts
-       * type PathParameters = {
-       *   name: string
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   // [title] Tag前端封装
-       *   // 图标标签主表前端封装
-       *   data?: {
-       *     // [title] 乐观锁
-       *     version?: number
-       *     // [title] 创建人
-       *     creatorId?: number
-       *     // [title] 创建时间
-       *     createTime?: string
-       *     // [title] 更新人
-       *     updaterId?: number
-       *     // [title] 更新时间
-       *     updateTime?: string
-       *     // [title] 标签名
-       *     tag?: string
-       *     // [title] 标签类型ID列表
-       *     // [items] start
-       *     // [title] 标签类型ID列表
-       *     // [items] end
-       *     typeIdList?: number[]
-       *     // [title] 图标ID
-       *     iconId?: number
-       *     // [title] 图标url
-       *     url?: string
-       *   }
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      getTag<
-        Config extends Alova2MethodConfig<RTagVo> & {
-          pathParams: {
-            name: string;
-          };
-        }
-      >(
-        config: Config
-      ): Alova2Method<RTagVo, 'tag.getTag', Config>;
-      /**
-       * ---
-       *
-       * [POST] 列出标签
-       *
-       * **path:** /api/tag/get/list
-       *
-       * ---
-       *
-       * **RequestBody**
-       * ```ts
-       * type RequestBody = {
-       *   // [title] 标签名列表
-       *   // [items] start
-       *   // [title] 标签名列表
-       *   // [items] end
-       *   tagList?: string[]
-       *   // [title]  图标标签分类列表
-       *   // [items] start
-       *   // [title]  图标标签分类列表
-       *   // [items] end
-       *   typeIdList?: number[]
-       *   // [title] 当前页，从1开始
-       *   current?: number
-       *   // [title] 每页大小，默认为10
-       *   size?: number
-       * }
-       * ```
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   // [title] 分页记录前端封装
-       *   // 分页记录前端封装
-       *   data?: {
-       *     // [items] start
-       *     // [title] Tag前端封装
-       *     // 图标标签主表前端封装
-       *     // [items] end
-       *     record?: Array<{
-       *       // [title] 乐观锁
-       *       version?: number
-       *       // [title] 创建人
-       *       creatorId?: number
-       *       // [title] 创建时间
-       *       createTime?: string
-       *       // [title] 更新人
-       *       updaterId?: number
-       *       // [title] 更新时间
-       *       updateTime?: string
-       *       // [title] 标签名
-       *       tag?: string
-       *       // [title] 标签类型ID列表
-       *       // [items] start
-       *       // [title] 标签类型ID列表
-       *       // [items] end
-       *       typeIdList?: number[]
-       *       // [title] 图标ID
-       *       iconId?: number
-       *       // [title] 图标url
-       *       url?: string
-       *     }>
-       *     total?: number
-       *     size?: number
-       *   }
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      listTag<
-        Config extends Alova2MethodConfig<RPageListVoTagVo> & {
-          data: TagSearchVo;
-        }
-      >(
-        config: Config
-      ): Alova2Method<RPageListVoTagVo, 'tag.listTag', Config>;
-    };
     route: {
       /**
        * ---
@@ -4638,6 +3847,69 @@ declare global {
       >(
         config: Config
       ): Alova2Method<RResourceUploadVo, 'resource.uploadImage', Config>;
+      /**
+       * ---
+       *
+       * [GET] 获取资源配置
+       *
+       * **path:** /api/res/get
+       *
+       * ---
+       *
+       * **Query Parameters**
+       * ```ts
+       * type QueryParameters = {
+       *   filePath: string
+       * }
+       * ```
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = {
+       *   error?: boolean
+       *   errorStatus?: number
+       *   errorData?: object
+       *   message?: string
+       *   // [title] 资源上传前端封装
+       *   // 资源上传前端封装
+       *   data?: {
+       *     // [title] 文件路径
+       *     filePath?: string
+       *     // [title] 文件地址
+       *     fileUrl?: string
+       *   }
+       *   users?: Record<
+       *     string,
+       *     {
+       *       // [title] 用户名
+       *       username?: string
+       *       // [title] 昵称
+       *       nickname?: string
+       *       // [title] QQ
+       *       qq?: string
+       *       // [title] 手机号
+       *       phone?: string
+       *       // [title] 头像链接
+       *       logo?: string
+       *       // [title] 备注
+       *       remark?: string
+       *     }
+       *   >
+       *   time?: string
+       * }
+       * ```
+       */
+      getResource<
+        Config extends Alova2MethodConfig<RResourceUploadVo> & {
+          params: {
+            filePath: string;
+          };
+        }
+      >(
+        config: Config
+      ): Alova2Method<RResourceUploadVo, 'resource.getResource', Config>;
     };
     punctuate: {
       /**
@@ -4676,8 +3948,53 @@ declare global {
        *   position?: string
        *   // [title] 点位说明
        *   content?: string
-       *   // [title] 额外特殊字段
-       *   extra?: Record<string, object>
+       *   // [title] 点位附加数据前端封装
+       *   extra?: {
+       *     // [title] 分层层级数据
+       *     underground?: {
+       *       // [title] 是否是分层层级
+       *       is_underground?: boolean
+       *       // [title] 是否是非地面层级
+       *       is_global?: boolean
+       *       // [title] 分层区域
+       *       // 分层区域标签
+       *       // [items] start
+       *       // [title] 分层区域
+       *       // 分层区域标签
+       *       // [items] end
+       *       region_levels?: string[]
+       *     }
+       *     // [title] 图标覆盖数据
+       *     iconOverride?: {
+       *       // [title] 图标ID
+       *       id?: number
+       *       // [title] 最小可见缩放级别
+       *       // 最小可见缩放级别，大于该值可见
+       *       minZoom?: number
+       *       // [title] 最大可见缩放级别
+       *       // 最大可见缩放级别，小于该值可见
+       *       maxZoom?: number
+       *     }
+       *     // [title] 1.6 海岛数据
+       *     // 海岛阶段数组
+       *     // [items] start
+       *     // [title] 1.6 海岛数据
+       *     // 海岛阶段数组
+       *     // [items] end
+       *     '1_6_island'?: string[]
+       *     // [title] 2.8 海岛数据
+       *     '2_8_island'?: {
+       *       // [title] 海岛名
+       *       island_name?: string
+       *       // [title] 海岛状态
+       *       // 海岛状态标签
+       *       // [items] start
+       *       // [title] 海岛状态
+       *       // 海岛状态标签
+       *       // [items] end
+       *       island_state?: string[]
+       *     }
+       *   }
        *   // [title] 点位图片
        *   picture?: string
        *   // [title] 点位初始标记者
@@ -4775,8 +4092,53 @@ declare global {
        *   position?: string
        *   // [title] 点位说明
        *   content?: string
-       *   // [title] 额外特殊字段
-       *   extra?: Record<string, object>
+       *   // [title] 点位附加数据前端封装
+       *   extra?: {
+       *     // [title] 分层层级数据
+       *     underground?: {
+       *       // [title] 是否是分层层级
+       *       is_underground?: boolean
+       *       // [title] 是否是非地面层级
+       *       is_global?: boolean
+       *       // [title] 分层区域
+       *       // 分层区域标签
+       *       // [items] start
+       *       // [title] 分层区域
+       *       // 分层区域标签
+       *       // [items] end
+       *       region_levels?: string[]
+       *     }
+       *     // [title] 图标覆盖数据
+       *     iconOverride?: {
+       *       // [title] 图标ID
+       *       id?: number
+       *       // [title] 最小可见缩放级别
+       *       // 最小可见缩放级别，大于该值可见
+       *       minZoom?: number
+       *       // [title] 最大可见缩放级别
+       *       // 最大可见缩放级别，小于该值可见
+       *       maxZoom?: number
+       *     }
+       *     // [title] 1.6 海岛数据
+       *     // 海岛阶段数组
+       *     // [items] start
+       *     // [title] 1.6 海岛数据
+       *     // 海岛阶段数组
+       *     // [items] end
+       *     '1_6_island'?: string[]
+       *     // [title] 2.8 海岛数据
+       *     '2_8_island'?: {
+       *       // [title] 海岛名
+       *       island_name?: string
+       *       // [title] 海岛状态
+       *       // 海岛状态标签
+       *       // [items] start
+       *       // [title] 海岛状态
+       *       // 海岛状态标签
+       *       // [items] end
+       *       island_state?: string[]
+       *     }
+       *   }
        *   // [title] 点位图片
        *   picture?: string
        *   // [title] 点位初始标记者
@@ -4954,8 +4316,53 @@ declare global {
        *       position?: string
        *       // [title] 点位说明
        *       content?: string
-       *       // [title] 额外特殊字段
-       *       extra?: Record<string, object>
+       *       // [title] 点位附加数据前端封装
+       *       extra?: {
+       *         // [title] 分层层级数据
+       *         underground?: {
+       *           // [title] 是否是分层层级
+       *           is_underground?: boolean
+       *           // [title] 是否是非地面层级
+       *           is_global?: boolean
+       *           // [title] 分层区域
+       *           // 分层区域标签
+       *           // [items] start
+       *           // [title] 分层区域
+       *           // 分层区域标签
+       *           // [items] end
+       *           region_levels?: string[]
+       *         }
+       *         // [title] 图标覆盖数据
+       *         iconOverride?: {
+       *           // [title] 图标ID
+       *           id?: number
+       *           // [title] 最小可见缩放级别
+       *           // 最小可见缩放级别，大于该值可见
+       *           minZoom?: number
+       *           // [title] 最大可见缩放级别
+       *           // 最大可见缩放级别，小于该值可见
+       *           maxZoom?: number
+       *         }
+       *         // [title] 1.6 海岛数据
+       *         // 海岛阶段数组
+       *         // [items] start
+       *         // [title] 1.6 海岛数据
+       *         // 海岛阶段数组
+       *         // [items] end
+       *         '1_6_island'?: string[]
+       *         // [title] 2.8 海岛数据
+       *         '2_8_island'?: {
+       *           // [title] 海岛名
+       *           island_name?: string
+       *           // [title] 海岛状态
+       *           // 海岛状态标签
+       *           // [items] start
+       *           // [title] 海岛状态
+       *           // 海岛状态标签
+       *           // [items] end
+       *           island_state?: string[]
+       *         }
+       *       }
        *       // [title] 点位图片
        *       picture?: string
        *       // [title] 点位初始标记者
@@ -5077,8 +4484,53 @@ declare global {
        *       position?: string
        *       // [title] 点位说明
        *       content?: string
-       *       // [title] 额外特殊字段
-       *       extra?: Record<string, object>
+       *       // [title] 点位附加数据前端封装
+       *       extra?: {
+       *         // [title] 分层层级数据
+       *         underground?: {
+       *           // [title] 是否是分层层级
+       *           is_underground?: boolean
+       *           // [title] 是否是非地面层级
+       *           is_global?: boolean
+       *           // [title] 分层区域
+       *           // 分层区域标签
+       *           // [items] start
+       *           // [title] 分层区域
+       *           // 分层区域标签
+       *           // [items] end
+       *           region_levels?: string[]
+       *         }
+       *         // [title] 图标覆盖数据
+       *         iconOverride?: {
+       *           // [title] 图标ID
+       *           id?: number
+       *           // [title] 最小可见缩放级别
+       *           // 最小可见缩放级别，大于该值可见
+       *           minZoom?: number
+       *           // [title] 最大可见缩放级别
+       *           // 最大可见缩放级别，小于该值可见
+       *           maxZoom?: number
+       *         }
+       *         // [title] 1.6 海岛数据
+       *         // 海岛阶段数组
+       *         // [items] start
+       *         // [title] 1.6 海岛数据
+       *         // 海岛阶段数组
+       *         // [items] end
+       *         '1_6_island'?: string[]
+       *         // [title] 2.8 海岛数据
+       *         '2_8_island'?: {
+       *           // [title] 海岛名
+       *           island_name?: string
+       *           // [title] 海岛状态
+       *           // 海岛状态标签
+       *           // [items] start
+       *           // [title] 海岛状态
+       *           // 海岛状态标签
+       *           // [items] end
+       *           island_state?: string[]
+       *         }
+       *       }
        *       // [title] 点位图片
        *       picture?: string
        *       // [title] 点位初始标记者
@@ -5563,8 +5015,8 @@ declare global {
        *     itemId?: number
        *     // [title] 物品于该点位数量
        *     count?: number
-       *     // [title] 图标标签
-       *     iconTag?: string
+       *     // [title] 图标ID
+       *     iconId?: number
        *   }>
        *   // [title] 点位说明
        *   content?: string
@@ -5580,8 +5032,53 @@ declare global {
        *   refreshTime?: number
        *   // [title] 隐藏标志
        *   hiddenFlag?: number
-       *   // [title] 额外特殊字段
-       *   extra?: Record<string, object>
+       *   // [title] 点位附加数据前端封装
+       *   extra?: {
+       *     // [title] 分层层级数据
+       *     underground?: {
+       *       // [title] 是否是分层层级
+       *       is_underground?: boolean
+       *       // [title] 是否是非地面层级
+       *       is_global?: boolean
+       *       // [title] 分层区域
+       *       // 分层区域标签
+       *       // [items] start
+       *       // [title] 分层区域
+       *       // 分层区域标签
+       *       // [items] end
+       *       region_levels?: string[]
+       *     }
+       *     // [title] 图标覆盖数据
+       *     iconOverride?: {
+       *       // [title] 图标ID
+       *       id?: number
+       *       // [title] 最小可见缩放级别
+       *       // 最小可见缩放级别，大于该值可见
+       *       minZoom?: number
+       *       // [title] 最大可见缩放级别
+       *       // 最大可见缩放级别，小于该值可见
+       *       maxZoom?: number
+       *     }
+       *     // [title] 1.6 海岛数据
+       *     // 海岛阶段数组
+       *     // [items] start
+       *     // [title] 1.6 海岛数据
+       *     // 海岛阶段数组
+       *     // [items] end
+       *     '1_6_island'?: string[]
+       *     // [title] 2.8 海岛数据
+       *     '2_8_island'?: {
+       *       // [title] 海岛名
+       *       island_name?: string
+       *       // [title] 海岛状态
+       *       // 海岛状态标签
+       *       // [items] start
+       *       // [title] 海岛状态
+       *       // 海岛状态标签
+       *       // [items] end
+       *       island_state?: string[]
+       *     }
+       *   }
        *   // [title] 点位关联组ID
        *   linkageId?: string
        * }
@@ -5665,8 +5162,8 @@ declare global {
        *     itemId?: number
        *     // [title] 物品于该点位数量
        *     count?: number
-       *     // [title] 图标标签
-       *     iconTag?: string
+       *     // [title] 图标ID
+       *     iconId?: number
        *   }>
        *   // [title] 点位说明
        *   content?: string
@@ -5682,8 +5179,53 @@ declare global {
        *   refreshTime?: number
        *   // [title] 隐藏标志
        *   hiddenFlag?: number
-       *   // [title] 额外特殊字段
-       *   extra?: Record<string, object>
+       *   // [title] 点位附加数据前端封装
+       *   extra?: {
+       *     // [title] 分层层级数据
+       *     underground?: {
+       *       // [title] 是否是分层层级
+       *       is_underground?: boolean
+       *       // [title] 是否是非地面层级
+       *       is_global?: boolean
+       *       // [title] 分层区域
+       *       // 分层区域标签
+       *       // [items] start
+       *       // [title] 分层区域
+       *       // 分层区域标签
+       *       // [items] end
+       *       region_levels?: string[]
+       *     }
+       *     // [title] 图标覆盖数据
+       *     iconOverride?: {
+       *       // [title] 图标ID
+       *       id?: number
+       *       // [title] 最小可见缩放级别
+       *       // 最小可见缩放级别，大于该值可见
+       *       minZoom?: number
+       *       // [title] 最大可见缩放级别
+       *       // 最大可见缩放级别，小于该值可见
+       *       maxZoom?: number
+       *     }
+       *     // [title] 1.6 海岛数据
+       *     // 海岛阶段数组
+       *     // [items] start
+       *     // [title] 1.6 海岛数据
+       *     // 海岛阶段数组
+       *     // [items] end
+       *     '1_6_island'?: string[]
+       *     // [title] 2.8 海岛数据
+       *     '2_8_island'?: {
+       *       // [title] 海岛名
+       *       island_name?: string
+       *       // [title] 海岛状态
+       *       // 海岛状态标签
+       *       // [items] start
+       *       // [title] 海岛状态
+       *       // 海岛状态标签
+       *       // [items] end
+       *       island_state?: string[]
+       *     }
+       *   }
        *   // [title] 点位关联组ID
        *   linkageId?: string
        * }
@@ -5774,8 +5316,8 @@ declare global {
        *         itemId?: number
        *         // [title] 物品于该点位数量
        *         count?: number
-       *         // [title] 图标标签
-       *         iconTag?: string
+       *         // [title] 图标ID
+       *         iconId?: number
        *       }>
        *     }
        *   }>
@@ -5824,8 +5366,8 @@ declare global {
        *       itemId?: number
        *       // [title] 物品于该点位数量
        *       count?: number
-       *       // [title] 图标标签
-       *       iconTag?: string
+       *       // [title] 图标ID
+       *       iconId?: number
        *     }>
        *     // [title] 点位说明
        *     content?: string
@@ -5841,8 +5383,53 @@ declare global {
        *     refreshTime?: number
        *     // [title] 隐藏标志
        *     hiddenFlag?: number
-       *     // [title] 额外特殊字段
-       *     extra?: Record<string, object>
+       *     // [title] 点位附加数据前端封装
+       *     extra?: {
+       *       // [title] 分层层级数据
+       *       underground?: {
+       *         // [title] 是否是分层层级
+       *         is_underground?: boolean
+       *         // [title] 是否是非地面层级
+       *         is_global?: boolean
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] start
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] end
+       *         region_levels?: string[]
+       *       }
+       *       // [title] 图标覆盖数据
+       *       iconOverride?: {
+       *         // [title] 图标ID
+       *         id?: number
+       *         // [title] 最小可见缩放级别
+       *         // 最小可见缩放级别，大于该值可见
+       *         minZoom?: number
+       *         // [title] 最大可见缩放级别
+       *         // 最大可见缩放级别，小于该值可见
+       *         maxZoom?: number
+       *       }
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] start
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] end
+       *       '1_6_island'?: string[]
+       *       // [title] 2.8 海岛数据
+       *       '2_8_island'?: {
+       *         // [title] 海岛名
+       *         island_name?: string
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] start
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] end
+       *         island_state?: string[]
+       *       }
+       *     }
        *     // [title] 点位关联组ID
        *     linkageId?: string
        *   }>
@@ -5938,8 +5525,8 @@ declare global {
        *         itemId?: number
        *         // [title] 物品于该点位数量
        *         count?: number
-       *         // [title] 图标标签
-       *         iconTag?: string
+       *         // [title] 图标ID
+       *         iconId?: number
        *       }>
        *       // [title] 点位说明
        *       content?: string
@@ -5955,8 +5542,53 @@ declare global {
        *       refreshTime?: number
        *       // [title] 隐藏标志
        *       hiddenFlag?: number
-       *       // [title] 额外特殊字段
-       *       extra?: Record<string, object>
+       *       // [title] 点位附加数据前端封装
+       *       extra?: {
+       *         // [title] 分层层级数据
+       *         underground?: {
+       *           // [title] 是否是分层层级
+       *           is_underground?: boolean
+       *           // [title] 是否是非地面层级
+       *           is_global?: boolean
+       *           // [title] 分层区域
+       *           // 分层区域标签
+       *           // [items] start
+       *           // [title] 分层区域
+       *           // 分层区域标签
+       *           // [items] end
+       *           region_levels?: string[]
+       *         }
+       *         // [title] 图标覆盖数据
+       *         iconOverride?: {
+       *           // [title] 图标ID
+       *           id?: number
+       *           // [title] 最小可见缩放级别
+       *           // 最小可见缩放级别，大于该值可见
+       *           minZoom?: number
+       *           // [title] 最大可见缩放级别
+       *           // 最大可见缩放级别，小于该值可见
+       *           maxZoom?: number
+       *         }
+       *         // [title] 1.6 海岛数据
+       *         // 海岛阶段数组
+       *         // [items] start
+       *         // [title] 1.6 海岛数据
+       *         // 海岛阶段数组
+       *         // [items] end
+       *         '1_6_island'?: string[]
+       *         // [title] 2.8 海岛数据
+       *         '2_8_island'?: {
+       *           // [title] 海岛名
+       *           island_name?: string
+       *           // [title] 海岛状态
+       *           // 海岛状态标签
+       *           // [items] start
+       *           // [title] 海岛状态
+       *           // 海岛状态标签
+       *           // [items] end
+       *           island_state?: string[]
+       *         }
+       *       }
        *       // [title] 点位关联组ID
        *       linkageId?: string
        *     }>
@@ -6003,6 +5635,11 @@ declare global {
        * **RequestBody**
        * ```ts
        * type RequestBody = {
+       *   // [title] 点位ID列表
+       *   // [items] start
+       *   // [title] 点位ID列表
+       *   // [items] end
+       *   markerIdList?: number[]
        *   // [title] 地区ID列表
        *   // [items] start
        *   // [title] 地区ID列表
@@ -6063,8 +5700,8 @@ declare global {
        *       itemId?: number
        *       // [title] 物品于该点位数量
        *       count?: number
-       *       // [title] 图标标签
-       *       iconTag?: string
+       *       // [title] 图标ID
+       *       iconId?: number
        *     }>
        *     // [title] 点位说明
        *     content?: string
@@ -6080,8 +5717,53 @@ declare global {
        *     refreshTime?: number
        *     // [title] 隐藏标志
        *     hiddenFlag?: number
-       *     // [title] 额外特殊字段
-       *     extra?: Record<string, object>
+       *     // [title] 点位附加数据前端封装
+       *     extra?: {
+       *       // [title] 分层层级数据
+       *       underground?: {
+       *         // [title] 是否是分层层级
+       *         is_underground?: boolean
+       *         // [title] 是否是非地面层级
+       *         is_global?: boolean
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] start
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] end
+       *         region_levels?: string[]
+       *       }
+       *       // [title] 图标覆盖数据
+       *       iconOverride?: {
+       *         // [title] 图标ID
+       *         id?: number
+       *         // [title] 最小可见缩放级别
+       *         // 最小可见缩放级别，大于该值可见
+       *         minZoom?: number
+       *         // [title] 最大可见缩放级别
+       *         // 最大可见缩放级别，小于该值可见
+       *         maxZoom?: number
+       *       }
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] start
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] end
+       *       '1_6_island'?: string[]
+       *       // [title] 2.8 海岛数据
+       *       '2_8_island'?: {
+       *         // [title] 海岛名
+       *         island_name?: string
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] start
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] end
+       *         island_state?: string[]
+       *       }
+       *     }
        *     // [title] 点位关联组ID
        *     linkageId?: string
        *   }>
@@ -6124,7 +5806,28 @@ declare global {
        *
        * **RequestBody**
        * ```ts
-       * type RequestBody = number[]
+       * type RequestBody = {
+       *   // [title] 点位ID列表
+       *   // [items] start
+       *   // [title] 点位ID列表
+       *   // [items] end
+       *   markerIdList?: number[]
+       *   // [title] 地区ID列表
+       *   // [items] start
+       *   // [title] 地区ID列表
+       *   // [items] end
+       *   areaIdList?: number[]
+       *   // [title] 物品ID列表
+       *   // [items] start
+       *   // [title] 物品ID列表
+       *   // [items] end
+       *   itemIdList?: number[]
+       *   // [title] 类型ID列表
+       *   // [items] start
+       *   // [title] 类型ID列表
+       *   // [items] end
+       *   typeIdList?: number[]
+       * }
        * ```
        *
        * ---
@@ -6169,8 +5872,8 @@ declare global {
        *       itemId?: number
        *       // [title] 物品于该点位数量
        *       count?: number
-       *       // [title] 图标标签
-       *       iconTag?: string
+       *       // [title] 图标ID
+       *       iconId?: number
        *     }>
        *     // [title] 点位说明
        *     content?: string
@@ -6186,8 +5889,53 @@ declare global {
        *     refreshTime?: number
        *     // [title] 隐藏标志
        *     hiddenFlag?: number
-       *     // [title] 额外特殊字段
-       *     extra?: Record<string, object>
+       *     // [title] 点位附加数据前端封装
+       *     extra?: {
+       *       // [title] 分层层级数据
+       *       underground?: {
+       *         // [title] 是否是分层层级
+       *         is_underground?: boolean
+       *         // [title] 是否是非地面层级
+       *         is_global?: boolean
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] start
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] end
+       *         region_levels?: string[]
+       *       }
+       *       // [title] 图标覆盖数据
+       *       iconOverride?: {
+       *         // [title] 图标ID
+       *         id?: number
+       *         // [title] 最小可见缩放级别
+       *         // 最小可见缩放级别，大于该值可见
+       *         minZoom?: number
+       *         // [title] 最大可见缩放级别
+       *         // 最大可见缩放级别，小于该值可见
+       *         maxZoom?: number
+       *       }
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] start
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] end
+       *       '1_6_island'?: string[]
+       *       // [title] 2.8 海岛数据
+       *       '2_8_island'?: {
+       *         // [title] 海岛名
+       *         island_name?: string
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] start
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] end
+       *         island_state?: string[]
+       *       }
+       *     }
        *     // [title] 点位关联组ID
        *     linkageId?: string
        *   }>
@@ -6214,7 +5962,7 @@ declare global {
        */
       listMarkerById<
         Config extends Alova2MethodConfig<RListMarkerVo> & {
-          data: number[];
+          data: MarkerSearchVo;
         }
       >(
         config: Config
@@ -6231,6 +5979,11 @@ declare global {
        * **RequestBody**
        * ```ts
        * type RequestBody = {
+       *   // [title] 点位ID列表
+       *   // [items] start
+       *   // [title] 点位ID列表
+       *   // [items] end
+       *   markerIdList?: number[]
        *   // [title] 地区ID列表
        *   // [items] start
        *   // [title] 地区ID列表
@@ -6371,8 +6124,8 @@ declare global {
        *   updaterId?: number
        *   // [title] 更新时间
        *   updateTime?: string
-       *   // [title] 图标标签
-       *   iconTag?: string
+       *   // [title] 图标ID
+       *   iconId?: number
        *   // [title] 类型名
        *   name?: string
        *   // [title] 类型补充说明
@@ -6450,8 +6203,8 @@ declare global {
        *   updaterId?: number
        *   // [title] 更新时间
        *   updateTime?: string
-       *   // [title] 图标标签
-       *   iconTag?: string
+       *   // [title] 图标ID
+       *   iconId?: number
        *   // [title] 类型名
        *   name?: string
        *   // [title] 类型补充说明
@@ -6602,8 +6355,8 @@ declare global {
        *     updaterId?: number
        *     // [title] 更新时间
        *     updateTime?: string
-       *     // [title] 图标标签
-       *     iconTag?: string
+       *     // [title] 图标ID
+       *     iconId?: number
        *     // [title] 类型名
        *     name?: string
        *     // [title] 类型补充说明
@@ -6703,8 +6456,8 @@ declare global {
        *       updaterId?: number
        *       // [title] 更新时间
        *       updateTime?: string
-       *       // [title] 图标标签
-       *       iconTag?: string
+       *       // [title] 图标ID
+       *       iconId?: number
        *       // [title] 类型名
        *       name?: string
        *       // [title] 类型补充说明
@@ -6922,8 +6675,8 @@ declare global {
        *       defaultContent?: string
        *       // [title] 默认数量
        *       defaultCount?: number
-       *       // [title] 图标标签
-       *       iconTag?: string
+       *       // [title] 图标ID
+       *       iconId?: number
        *       // [title] 图标样式类型
        *       iconStyleType?: number
        *       // [title] 隐藏标志
@@ -7127,8 +6880,8 @@ declare global {
        *   defaultContent?: string
        *   // [title] 默认数量
        *   defaultCount?: number
-       *   // [title] 图标标签
-       *   iconTag?: string
+       *   // [title] 图标ID
+       *   iconId?: number
        *   // [title] 图标样式类型
        *   iconStyleType?: number
        *   // [title] 隐藏标志
@@ -7230,8 +6983,8 @@ declare global {
        *   defaultContent?: string
        *   // [title] 默认数量
        *   defaultCount?: number
-       *   // [title] 图标标签
-       *   iconTag?: string
+       *   // [title] 图标ID
+       *   iconId?: number
        *   // [title] 图标样式类型
        *   iconStyleType?: number
        *   // [title] 隐藏标志
@@ -7261,7 +7014,9 @@ declare global {
        *   errorStatus?: number
        *   errorData?: object
        *   message?: string
-       *   data?: boolean
+       *   // [items] start
+       *   // [items] end
+       *   data?: number[]
        *   users?: Record<
        *     string,
        *     {
@@ -7284,7 +7039,7 @@ declare global {
        * ```
        */
       updateItem<
-        Config extends Alova2MethodConfig<RBoolean> & {
+        Config extends Alova2MethodConfig<RListLong> & {
           pathParams: {
             editSame: number;
           };
@@ -7292,7 +7047,7 @@ declare global {
         }
       >(
         config: Config
-      ): Alova2Method<RBoolean, 'item.updateItem', Config>;
+      ): Alova2Method<RListLong, 'item.updateItem', Config>;
       /**
        * ---
        *
@@ -7381,6 +7136,8 @@ declare global {
        *   areaIdList?: number[]
        *   // [title] 物品名
        *   name?: string
+       *   // [title] 特殊标记
+       *   specialFlag?: number
        *   // [title] 当前页，从1开始
        *   current?: number
        *   // [title] 每页大小，默认为10
@@ -7432,8 +7189,8 @@ declare global {
        *       defaultContent?: string
        *       // [title] 默认数量
        *       defaultCount?: number
-       *       // [title] 图标标签
-       *       iconTag?: string
+       *       // [title] 图标ID
+       *       iconId?: number
        *       // [title] 图标样式类型
        *       iconStyleType?: number
        *       // [title] 隐藏标志
@@ -7533,8 +7290,8 @@ declare global {
        *     defaultContent?: string
        *     // [title] 默认数量
        *     defaultCount?: number
-       *     // [title] 图标标签
-       *     iconTag?: string
+       *     // [title] 图标ID
+       *     iconId?: number
        *     // [title] 图标样式类型
        *     iconStyleType?: number
        *     // [title] 隐藏标志
@@ -7954,8 +7711,8 @@ declare global {
        *   updaterId?: number
        *   // [title] 更新时间
        *   updateTime?: string
-       *   // [title] 图标名称
-       *   name?: string
+       *   // [title] 图标标签
+       *   tag?: string
        *   // [title] 图标类型ID列表
        *   // [items] start
        *   // [title] 图标类型ID列表
@@ -7963,6 +7720,10 @@ declare global {
        *   typeIdList?: number[]
        *   // [title] 图标url
        *   url?: string
+       *   // [title] 图标变体url
+       *   urlVariants?: Record<string, string>
+       *   // [title] 图标描述
+       *   description?: string
        * }
        * ```
        *
@@ -8028,8 +7789,8 @@ declare global {
        *   updaterId?: number
        *   // [title] 更新时间
        *   updateTime?: string
-       *   // [title] 图标名称
-       *   name?: string
+       *   // [title] 图标标签
+       *   tag?: string
        *   // [title] 图标类型ID列表
        *   // [items] start
        *   // [title] 图标类型ID列表
@@ -8037,6 +7798,10 @@ declare global {
        *   typeIdList?: number[]
        *   // [title] 图标url
        *   url?: string
+       *   // [title] 图标变体url
+       *   urlVariants?: Record<string, string>
+       *   // [title] 图标描述
+       *   description?: string
        * }
        * ```
        *
@@ -8118,8 +7883,8 @@ declare global {
        *     updaterId?: number
        *     // [title] 更新时间
        *     updateTime?: string
-       *     // [title] 图标名称
-       *     name?: string
+       *     // [title] 图标标签
+       *     tag?: string
        *     // [title] 图标类型ID列表
        *     // [items] start
        *     // [title] 图标类型ID列表
@@ -8127,6 +7892,10 @@ declare global {
        *     typeIdList?: number[]
        *     // [title] 图标url
        *     url?: string
+       *     // [title] 图标变体url
+       *     urlVariants?: Record<string, string>
+       *     // [title] 图标描述
+       *     description?: string
        *   }
        *   users?: Record<
        *     string,
@@ -8184,8 +7953,8 @@ declare global {
        *   // [title] 图标分类列表
        *   // [items] end
        *   typeIdList?: number[]
-       *   // [title] 图标名
-       *   name?: string
+       *   // [title] 图标标签
+       *   tag?: string
        *   // [title] 当前页，从1开始
        *   current?: number
        *   // [title] 每页大小，默认为10
@@ -8222,8 +7991,8 @@ declare global {
        *       updaterId?: number
        *       // [title] 更新时间
        *       updateTime?: string
-       *       // [title] 图标名称
-       *       name?: string
+       *       // [title] 图标标签
+       *       tag?: string
        *       // [title] 图标类型ID列表
        *       // [items] start
        *       // [title] 图标类型ID列表
@@ -8231,6 +8000,10 @@ declare global {
        *       typeIdList?: number[]
        *       // [title] 图标url
        *       url?: string
+       *       // [title] 图标变体url
+       *       urlVariants?: Record<string, string>
+       *       // [title] 图标描述
+       *       description?: string
        *     }>
        *     total?: number
        *     size?: number
@@ -8351,8 +8124,8 @@ declare global {
        *   code?: string
        *   // [title] 地区说明
        *   content?: string
-       *   // [title] 图标标签
-       *   iconTag?: string
+       *   // [title] 图标ID
+       *   iconId?: number
        *   // [title] 父级地区ID（无父级则为-1）
        *   parentId?: number
        *   // [title] 是否为末端地区
@@ -8434,8 +8207,8 @@ declare global {
        *   code?: string
        *   // [title] 地区说明
        *   content?: string
-       *   // [title] 图标标签
-       *   iconTag?: string
+       *   // [title] 图标ID
+       *   iconId?: number
        *   // [title] 父级地区ID（无父级则为-1）
        *   parentId?: number
        *   // [title] 是否为末端地区
@@ -8533,8 +8306,8 @@ declare global {
        *     code?: string
        *     // [title] 地区说明
        *     content?: string
-       *     // [title] 图标标签
-       *     iconTag?: string
+       *     // [title] 图标ID
+       *     iconId?: number
        *     // [title] 父级地区ID（无父级则为-1）
        *     parentId?: number
        *     // [title] 是否为末端地区
@@ -8632,8 +8405,8 @@ declare global {
        *     code?: string
        *     // [title] 地区说明
        *     content?: string
-       *     // [title] 图标标签
-       *     iconTag?: string
+       *     // [title] 图标ID
+       *     iconId?: number
        *     // [title] 父级地区ID（无父级则为-1）
        *     parentId?: number
        *     // [title] 是否为末端地区
@@ -10329,8 +10102,53 @@ declare global {
        *       position?: string
        *       // [title] 点位说明
        *       content?: string
-       *       // [title] 额外特殊字段
-       *       extra?: Record<string, object>
+       *       // [title] 点位附加数据前端封装
+       *       extra?: {
+       *         // [title] 分层层级数据
+       *         underground?: {
+       *           // [title] 是否是分层层级
+       *           is_underground?: boolean
+       *           // [title] 是否是非地面层级
+       *           is_global?: boolean
+       *           // [title] 分层区域
+       *           // 分层区域标签
+       *           // [items] start
+       *           // [title] 分层区域
+       *           // 分层区域标签
+       *           // [items] end
+       *           region_levels?: string[]
+       *         }
+       *         // [title] 图标覆盖数据
+       *         iconOverride?: {
+       *           // [title] 图标ID
+       *           id?: number
+       *           // [title] 最小可见缩放级别
+       *           // 最小可见缩放级别，大于该值可见
+       *           minZoom?: number
+       *           // [title] 最大可见缩放级别
+       *           // 最大可见缩放级别，小于该值可见
+       *           maxZoom?: number
+       *         }
+       *         // [title] 1.6 海岛数据
+       *         // 海岛阶段数组
+       *         // [items] start
+       *         // [title] 1.6 海岛数据
+       *         // 海岛阶段数组
+       *         // [items] end
+       *         '1_6_island'?: string[]
+       *         // [title] 2.8 海岛数据
+       *         '2_8_island'?: {
+       *           // [title] 海岛名
+       *           island_name?: string
+       *           // [title] 海岛状态
+       *           // 海岛状态标签
+       *           // [items] start
+       *           // [title] 海岛状态
+       *           // 海岛状态标签
+       *           // [items] end
+       *           island_state?: string[]
+       *         }
+       *       }
        *       // [title] 点位图片
        *       picture?: string
        *       // [title] 点位初始标记者
@@ -10458,8 +10276,53 @@ declare global {
        *     position?: string
        *     // [title] 点位说明
        *     content?: string
-       *     // [title] 额外特殊字段
-       *     extra?: Record<string, object>
+       *     // [title] 点位附加数据前端封装
+       *     extra?: {
+       *       // [title] 分层层级数据
+       *       underground?: {
+       *         // [title] 是否是分层层级
+       *         is_underground?: boolean
+       *         // [title] 是否是非地面层级
+       *         is_global?: boolean
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] start
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] end
+       *         region_levels?: string[]
+       *       }
+       *       // [title] 图标覆盖数据
+       *       iconOverride?: {
+       *         // [title] 图标ID
+       *         id?: number
+       *         // [title] 最小可见缩放级别
+       *         // 最小可见缩放级别，大于该值可见
+       *         minZoom?: number
+       *         // [title] 最大可见缩放级别
+       *         // 最大可见缩放级别，小于该值可见
+       *         maxZoom?: number
+       *       }
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] start
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] end
+       *       '1_6_island'?: string[]
+       *       // [title] 2.8 海岛数据
+       *       '2_8_island'?: {
+       *         // [title] 海岛名
+       *         island_name?: string
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] start
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] end
+       *         island_state?: string[]
+       *       }
+       *     }
        *     // [title] 点位图片
        *     picture?: string
        *     // [title] 点位初始标记者
@@ -10561,8 +10424,53 @@ declare global {
        *     position?: string
        *     // [title] 点位说明
        *     content?: string
-       *     // [title] 额外特殊字段
-       *     extra?: Record<string, object>
+       *     // [title] 点位附加数据前端封装
+       *     extra?: {
+       *       // [title] 分层层级数据
+       *       underground?: {
+       *         // [title] 是否是分层层级
+       *         is_underground?: boolean
+       *         // [title] 是否是非地面层级
+       *         is_global?: boolean
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] start
+       *         // [title] 分层区域
+       *         // 分层区域标签
+       *         // [items] end
+       *         region_levels?: string[]
+       *       }
+       *       // [title] 图标覆盖数据
+       *       iconOverride?: {
+       *         // [title] 图标ID
+       *         id?: number
+       *         // [title] 最小可见缩放级别
+       *         // 最小可见缩放级别，大于该值可见
+       *         minZoom?: number
+       *         // [title] 最大可见缩放级别
+       *         // 最大可见缩放级别，小于该值可见
+       *         maxZoom?: number
+       *       }
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] start
+       *       // [title] 1.6 海岛数据
+       *       // 海岛阶段数组
+       *       // [items] end
+       *       '1_6_island'?: string[]
+       *       // [title] 2.8 海岛数据
+       *       '2_8_island'?: {
+       *         // [title] 海岛名
+       *         island_name?: string
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] start
+       *         // [title] 海岛状态
+       *         // 海岛状态标签
+       *         // [items] end
+       *         island_state?: string[]
+       *       }
+       *     }
        *     // [title] 点位图片
        *     picture?: string
        *     // [title] 点位初始标记者
@@ -11266,7 +11174,7 @@ declare global {
        *       content?: string
        *       // [title] MD5
        *       md5?: string
-       *       // [title] 操作数据类型;1地区; 2图标; 3物品; 4点位; 5标签
+       *       // [title] 操作数据类型;1地区; 2图标; 3物品; 4点位;
        *       type?: number
        *       // [title] IPv4
        *       ipv4?: string
@@ -11404,73 +11312,6 @@ declare global {
       listRole<Config extends Alova2MethodConfig<RListSysRoleVo>>(
         config?: Config
       ): Alova2Method<RListSysRoleVo, 'role.listRole', Config>;
-    };
-    tag_doc: {
-      /**
-       * ---
-       *
-       * [GET] 获取所有标签信息的压缩
-       *
-       * **path:** /api/tag_doc/all_bin
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = string[]
-       * ```
-       */
-      listAllTagBinary<Config extends Alova2MethodConfig<string[]>>(
-        config?: Config
-      ): Alova2Method<string[], 'tag_doc.listAllTagBinary', Config>;
-      /**
-       * ---
-       *
-       * [GET] 返回所有标签信息的md5
-       *
-       * **path:** /api/tag_doc/all_bin_md5
-       *
-       * ---
-       *
-       * **Response**
-       * ```ts
-       * type Response = {
-       *   error?: boolean
-       *   errorStatus?: number
-       *   errorData?: object
-       *   message?: string
-       *   // [title] 归档类MD5前端封装
-       *   // 归档类MD5前端封装
-       *   data?: {
-       *     // [title] md5
-       *     md5?: string
-       *     // [title] 时间戳
-       *     time?: number
-       *   }
-       *   users?: Record<
-       *     string,
-       *     {
-       *       // [title] 用户名
-       *       username?: string
-       *       // [title] 昵称
-       *       nickname?: string
-       *       // [title] QQ
-       *       qq?: string
-       *       // [title] 手机号
-       *       phone?: string
-       *       // [title] 头像链接
-       *       logo?: string
-       *       // [title] 备注
-       *       remark?: string
-       *     }
-       *   >
-       *   time?: string
-       * }
-       * ```
-       */
-      listAllTagBinaryMd5<Config extends Alova2MethodConfig<RBinaryMD5Vo>>(
-        config?: Config
-      ): Alova2Method<RBinaryMD5Vo, 'tag_doc.listAllTagBinaryMd5', Config>;
     };
     marker_link_doc: {
       /**
@@ -11687,6 +11528,40 @@ declare global {
       >(
         config: Config
       ): Alova2Method<string[], 'marker_doc.listPageMarkerByBinary', Config>;
+      /**
+       * ---
+       *
+       * [GET] 返回所有点位
+       *
+       * **path:** /api/marker_doc/list_markers
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = string[]
+       * ```
+       */
+      listMarkersByBinary<Config extends Alova2MethodConfig<string[]>>(
+        config?: Config
+      ): Alova2Method<string[], 'marker_doc.listMarkersByBinary', Config>;
+      /**
+       * ---
+       *
+       * [GET] 返回点位差异比对快照
+       *
+       * **path:** /api/marker_doc/list_diff_snapshot
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = string[]
+       * ```
+       */
+      listMarkerDiffSnapshotByBinary<Config extends Alova2MethodConfig<string[]>>(
+        config?: Config
+      ): Alova2Method<string[], 'marker_doc.listMarkerDiffSnapshotByBinary', Config>;
     };
     item_doc: {
       /**
@@ -11771,6 +11646,73 @@ declare global {
       >(
         config: Config
       ): Alova2Method<string[], 'item_doc.listPageItemByBinary', Config>;
+    };
+    icon_doc: {
+      /**
+       * ---
+       *
+       * [GET] 获取所有图标信息的压缩
+       *
+       * **path:** /api/icon_doc/all_bin
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = string[]
+       * ```
+       */
+      listAllIconBinary<Config extends Alova2MethodConfig<string[]>>(
+        config?: Config
+      ): Alova2Method<string[], 'icon_doc.listAllIconBinary', Config>;
+      /**
+       * ---
+       *
+       * [GET] 返回所有图标信息的md5
+       *
+       * **path:** /api/icon_doc/all_bin_md5
+       *
+       * ---
+       *
+       * **Response**
+       * ```ts
+       * type Response = {
+       *   error?: boolean
+       *   errorStatus?: number
+       *   errorData?: object
+       *   message?: string
+       *   // [title] 归档类MD5前端封装
+       *   // 归档类MD5前端封装
+       *   data?: {
+       *     // [title] md5
+       *     md5?: string
+       *     // [title] 时间戳
+       *     time?: number
+       *   }
+       *   users?: Record<
+       *     string,
+       *     {
+       *       // [title] 用户名
+       *       username?: string
+       *       // [title] 昵称
+       *       nickname?: string
+       *       // [title] QQ
+       *       qq?: string
+       *       // [title] 手机号
+       *       phone?: string
+       *       // [title] 头像链接
+       *       logo?: string
+       *       // [title] 备注
+       *       remark?: string
+       *     }
+       *   >
+       *   time?: string
+       * }
+       * ```
+       */
+      listAllIconBinaryMd5<Config extends Alova2MethodConfig<RBinaryMD5Vo>>(
+        config?: Config
+      ): Alova2Method<RBinaryMD5Vo, 'icon_doc.listAllIconBinaryMd5', Config>;
     };
     jwkController: {
       /**
@@ -11959,15 +11901,15 @@ declare global {
       /**
        * ---
        *
-       * [DELETE] 删除标签缓存
+       * [DELETE] 删除图标缓存
        *
-       * **path:** /api/cache/iconTag
+       * **path:** /api/cache/icon
        *
        * ---
        *
        * **RequestBody**
        * ```ts
-       * type RequestBody = string[]
+       * type RequestBody = number[]
        * ```
        *
        * ---
@@ -12001,13 +11943,13 @@ declare global {
        * }
        * ```
        */
-      cleanIconTagCache<
+      cleanIconCache<
         Config extends Alova2MethodConfig<RBoolean> & {
-          data: string[];
+          data: number[];
         }
       >(
         config: Config
-      ): Alova2Method<RBoolean, 'cache.cleanIconTagCache', Config>;
+      ): Alova2Method<RBoolean, 'cache.cleanIconCache', Config>;
       /**
        * ---
        *

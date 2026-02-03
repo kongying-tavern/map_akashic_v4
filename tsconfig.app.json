@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "composite": true,
+    "target": "esnext",
     "lib": ["DOM", "ESNext", "ESNext.Array", "ESNext.AsyncIterable", "WebWorker"],
     "baseUrl": ".",
     "rootDir": ".",
