@@ -40,13 +40,5 @@
     "unplugin-auto-import": "^19.3.0",
     "vite": "npm:rolldown-vite@latest",
     "vue-tsc": "^3.0.6"
-  },
-  "lint-staged": {
-    "*.{vue,js,ts}": [
-      "pnpm check:type"
-    ],
-    "*.{vue,js,ts,json,html}": [
-      "pnpm lint:fix"
-    ]
   }
 }
