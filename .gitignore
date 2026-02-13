@@ -11,3 +11,5 @@ node_modules
 # os file
 .DS_Store
 Microsoft
+
+*.log
