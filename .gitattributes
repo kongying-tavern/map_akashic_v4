@@ -1,3 +1,5 @@
+* auto eol=lf
+
 # 覆盖行终止符
 *.vue text eol=lf
 *.ts text eol=lf
