@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/node22/tsconfig.json",
+  "extends": "@tsconfig/node24/tsconfig.json",
   "compilerOptions": {
     "incremental": true,
     "composite": true,
@@ -11,8 +11,8 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "vite.config.ts",
-    "types/**/*.d.ts"
+  "exclude": [
+    "node_modules",
+    "src"
   ]
 }

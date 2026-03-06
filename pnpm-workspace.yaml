@@ -1,4 +1,5 @@
+shellEmulator: true
+trustPolicy: 'no-downgrade'
 onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
+  - '@vaadin/vaadin-usage-statistics'
   - esbuild
-  - unrs-resolver

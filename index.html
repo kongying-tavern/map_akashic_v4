@@ -9,25 +9,34 @@
 </head>
 <body class="grid">
   <!-- 首屏 loading -->
-  <div id="loading" style="--dutation: %VITE_LOADING_DURATION%"></div>
+  <div id="loading-container" class="fixed-page">
+    <div id="loading"></div>
+  </div>
 
   <!-- 应用容器 -->
-  <div id="app" class="hidden"></div>
+  <div id="app" class="fixed-page hidden"></div>
 
   <!-- 初始化 JS -->
   <script type="module">
     const app = document.getElementById('app')
+    const loadingContainer = document.getElementById('loading-container')
+    loadingContainer.addEventListener('transitionend', () => {
+      loadingContainer.remove()
+    }, { once: true })
     const firstLoading = document.getElementById('loading')
     const firstLoadingAnimation = new Promise((resolve) => {
-      firstLoading.addEventListener('animationend', resolve)
+      firstLoading.addEventListener('animationend', resolve, { once: true })
     })
-    // 至少等待 loading 动画播放完毕后才进入应用
     Promise.all([
-      import('./src/main.ts'),
+      import('./src/main.ts')
+      .then(() => {
+        // 如果加载时间小于 1s，则强制动画时长为 1s
+        firstLoading.style.animationDuration = '1s'
+      }),
+      // 至少等待 loading 动画播放完毕后才进入应用
       firstLoadingAnimation,
     ]).then(() => {
-      firstLoading.remove()
-      document.body.classList.remove('grid')
+      loadingContainer.classList.toggle('exit', true)
       app.classList.remove('hidden')
     })
   </script>

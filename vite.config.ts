@@ -3,6 +3,7 @@ import Vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import { defineConfig, loadEnv } from 'vite'
+import VueRouter from 'vue-router/vite'
 import { version } from './package.json'
 
 export default defineConfig(({ mode }) => {
@@ -21,11 +22,19 @@ export default defineConfig(({ mode }) => {
       port: 20928,
       proxy: {
         [env.VITE_API_BASE]: {
-          target: env.VITE_API_TARGET,
+          target: env.VITE_API_BASE_PROXY,
           changeOrigin: true,
           rewrite: (path) => {
             console.log('[target]', path.replace(env.VITE_API_BASE, ''))
             return path.replace(env.VITE_API_BASE, '')
+          },
+        },
+        [env.VITE_APP_CONFIG_URL]: {
+          target: env.VITE_APP_CONFIG_URL_PROXY,
+          changeOrigin: true,
+          rewrite: (path) => {
+            console.log('[target]', path.replace(env.VITE_APP_CONFIG_URL, ''))
+            return path.replace(env.VITE_APP_CONFIG_URL, '')
           },
         },
       },
@@ -38,6 +47,9 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [
+      VueRouter({
+        dts: path.resolve(__dirname, 'types/router.d.ts'),
+      }),
       Vue(),
       UnoCSS(),
       AutoImport({

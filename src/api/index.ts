@@ -30,3 +30,6 @@ const Apis = createApis(alovaInstance, $$userConfigMap)
 mountApis(Apis)
 
 export default Apis
+export * as config from './manual/config'
+
+export type { DadianConfig } from './manual/config'

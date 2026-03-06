@@ -1,8 +1,15 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { defineConfig } from 'czg'
 
-export default defineConfig({
-  extends: ['@commitlint/config-conventional'],
+const __dirname = path.resolve()
 
+/** 动态读取 src 目录下的子目录 */
+const srcDirs = fs
+  .readdirSync(path.resolve(__dirname, 'src'))
+  .filter(dir => fs.statSync(path.resolve(__dirname, 'src', dir)).isDirectory())
+
+export default defineConfig({
   /** @see https://commitlint.js.org/reference/rules.html */
   rules: {
     /**
@@ -85,16 +92,7 @@ export default defineConfig({
       { value: 'deps', name: '📦️ deps:       依赖更新', emoji: ':package:' },
       { value: 'init', name: '🎉 init:       创世提交', emoji: ':tada:' },
     ],
-    scopes: [
-      'api',
-      'components',
-      'hooks',
-      'modules',
-      'shared',
-      'stores',
-      'styles',
-      'utils',
-    ],
+    scopes: srcDirs,
     useEmoji: true,
     emojiAlign: 'center',
     customScopesAlias: '以上都不是？我要自定义',

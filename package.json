@@ -10,9 +10,11 @@
   "scripts": {
     "prepare": "husky",
     "dev": "vite",
+    "build": "vite build",
     "lint": "eslint --concurrency=auto",
     "lint:fix": "eslint --concurrency=auto --fix",
     "check:type": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
+    "precommit": "lint-staged",
     "cz": "czg emoji"
   },
   "dependencies": {

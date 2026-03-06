@@ -1,6 +1,47 @@
+/* ============================== properties ============================== */
+@property --clip {
+  syntax: '<length-percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --duration {
+  syntax: '<time>';
+  inherits: false;
+  initial-value: 0s;
+}
+
+/* ============================== keyframes ============================== */
+@keyframes first-loading {
+  0% {
+    --clip: 100%;
+  }
+  20% {
+    --clip: calc(var(--size) / 2);
+  }
+  95% {
+    --clip: calc(var(--size) / 2);
+  }
+  100% {
+    --clip: 0%;
+  }
+}
+
+/* ============================== reset ============================== */
 * {
   margin: 0;
   box-sizing: border-box;
+}
+
+/* ============================== styles ============================== */
+html {
+  color-scheme: light dark;
+}
+html.light {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
 }
 
 body {
@@ -14,23 +55,35 @@ body.grid {
   place-items: center;
 }
 
-#app {
+.fixed-page {
+  position: fixed;
+  left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
+}
+
+#app {
   overflow: hidden;
   container-type: size;
 }
 #app.hidden {
-  display: none;
+  content-visibility: hidden;
 }
 
-@property --clip {
-  syntax: '<length-percentage>';
-  inherits: true;
-  initial-value: 0%;
+#loading-container {
+  display: grid;
+  place-content: center;
+  z-index: 1000;
+  background: light-dark(#FFF, #333);
+  transition: opacity 0.5s ease;
+}
+#loading-container.exit {
+  opacity: 0;
 }
 
 #loading {
+  --duration: 10s;
   /* 图标的基准大小 */
   --size: min(48px, round(up, calc(100cqw / 35 * 3), 1px));
   /* 图标间距 */
@@ -48,22 +101,7 @@ body.grid {
   width: calc(var(--size) * 7 + var(--gap) * 6);
   height: var(--size);
   position: relative;
-  animation: first-loading linear var(--dutation) forwards;
-}
-
-@keyframes first-loading {
-  0% {
-    --clip: 100%;
-  }
-  20% {
-    --clip: calc(var(--size) / 2);
-  }
-  95% {
-    --clip: calc(var(--size) / 2);
-  }
-  100% {
-    --clip: 0%;
-  }
+  animation: first-loading ease var(--duration) forwards;
 }
 
 #loading::before {

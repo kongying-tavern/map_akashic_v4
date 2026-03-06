@@ -59,12 +59,6 @@ export default defineConfig({
 
   vue: {
     overrides: {
-      // 组件名称至少由 2 个单词组成
-      'vue/multi-word-component-names': 'error',
-
-      // 组件定义名称只允许大驼峰
-      'vue/component-definition-name-casing': ['error', 'PascalCase'],
-
       // 组件属性名称只允许小驼峰
       'vue/prop-name-casing': ['error', 'camelCase'],
 
