@@ -129,13 +129,14 @@ interface ItemVo {
   | `0` | 默认 | 基础图标 | 有边框 | 图钉锚点 | 有对勾 |
   | `1` | 无边框 | 基础图标 | 无边框 | 中心锚点 | 有对勾 |
   | `3` | 类神瞳 | 特殊图标 | 无边框 | 中心锚点 | 无对勾 |
-  - 【基础图标】与【特殊图标】参见 [`TDD-7` 图标数据][tdd-7]。
+  - 【基础图标】与【特殊图标】参见 [`TDD-7` 图标数据 - 图标变体 - 变体：物品][tdd-7-icon_vars_item]。
 - `图标ID`：此物品下的点位图标，均按照此图标ID对应的图标进行显示。参见 [`TDD-7` 图标数据][tdd-7]。
 - `物品计数拆分`：该物品下所有点位对此物品的总计数，用于计数汇总统计。数据键为权限标记的值，值为物品计数总和。详见 [权限标记][tdd-2-hidden_flag] 章节。
 
 [tdd-2-hidden_flag]: #hidden-flag
 [tdd-3]: ./3-special-markers.md
 [tdd-7]: ./7-icon-data.md
+[tdd-7-icon_vars_item]: ./7-icon-data.md#icon-vars-item
 
 #### Q & A {#item-model-qa}
 
