@@ -21,15 +21,15 @@
     "alova": "3.5.1",
     "deck.gl": "9.2.11",
     "pinia": "3.0.4",
-    "vue": "3.5.29"
+    "vue": "3.5.29",
+    "vue-router": "5.0.3",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@alova/wormhole": "1.5.0",
     "@antfu/eslint-config": "7.7.0",
-    "@tsconfig/node24": "24.0.4",
     "@types/node": "24.0.4",
     "@vitejs/plugin-vue": "6.0.4",
-    "@vue/tsconfig": "0.9.0",
     "czg": "1.12.0",
     "eslint": "10.0.3",
     "typescript": "5.9.3",

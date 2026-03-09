@@ -33,11 +33,18 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/map/[code]': RouteRecordInfo<
-      '/map/[code]',
-      '/map/:code',
-      { code: ParamValue<true> },
-      { code: ParamValue<false> },
+    '/map/': RouteRecordInfo<
+      '/map/',
+      '/map',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/map/[id]': RouteRecordInfo<
+      '/map/[id]',
+      '/map/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
       | never
     >,
   }
@@ -59,9 +66,15 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/map/[code].vue': {
+    'src/pages/map/index.vue': {
       routes:
-        | '/map/[code]'
+        | '/map/'
+      views:
+        | never
+    }
+    'src/pages/map/[id].vue': {
+      routes:
+        | '/map/[id]'
       views:
         | never
     }

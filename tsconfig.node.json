@@ -1,15 +1,24 @@
 {
-  "extends": "@tsconfig/node24/tsconfig.json",
   "compilerOptions": {
     "incremental": true,
     "composite": true,
+    "lib": [
+      "es2024",
+      "ESNext.Array",
+      "ESNext.Collection",
+      "ESNext.Error",
+      "ESNext.Iterator",
+      "ESNext.Promise"
+    ],
     "baseUrl": ".",
     "rootDir": ".",
     "module": "esnext",
     "moduleResolution": "bundler",
     "types": ["node"],
     "strict": true,
-    "forceConsistentCasingInFileNames": true
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules",

@@ -16,8 +16,7 @@
   },
   "include": [
     "index.html",
-    "types/**/*.d.ts",
-    "src/**/*.ts",
-    "src/**/*.vue"
+    "types",
+    "src"
   ]
 }

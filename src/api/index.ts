@@ -32,4 +32,14 @@ mountApis(Apis)
 export default Apis
 export * as config from './manual/config'
 
-export type { DadianConfig } from './manual/config'
+export type {
+  ConfigAvatar,
+  ConfigBounds,
+  ConfigDict,
+  ConfigExtra,
+  ConfigFontResources,
+  ConfigNameCard,
+  ConfigPlugin,
+  ConfigTileLayer,
+  DadianConfig,
+} from './manual/config'

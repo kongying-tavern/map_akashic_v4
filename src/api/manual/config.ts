@@ -11,12 +11,12 @@ export const configInstance = createAlova({
   },
 })
 
-interface ConfigAvatar {
+export interface ConfigAvatar {
   label?: string
   url?: string
 }
 
-interface ConfigNameCard {
+export interface ConfigNameCard {
   /**
    * 名片名称
    * @example '原神·印象'
@@ -44,7 +44,7 @@ interface ConfigNameCard {
   desc?: string
 }
 
-interface ConfigFontResources {
+export interface ConfigFontResources {
   /**
    * 字体资源地址
    * @example 'https://tiles.yuanshen.site/d/res/font/HYWenHei-55S.woff2'
@@ -57,12 +57,12 @@ interface ConfigFontResources {
   type?: string
 }
 
-interface ConfigDict<T> {
+export interface ConfigDict<T> {
   label?: string
   value?: T
 }
 
-interface ConfigTileLayer {
+export interface ConfigTileLayer {
   center?: [x: number, y: number]
   code?: string
   extend?: string
@@ -76,7 +76,7 @@ interface ConfigTileLayer {
   tilesOffset?: [x: number, y: number]
 }
 
-interface ConfigExtra {
+export interface ConfigExtra {
   /**
    * 1.6 海岛版本
    * @note 早期设计，不再更改
@@ -104,12 +104,12 @@ interface ConfigExtra {
   }
 }
 
-type ConfigBounds = [
+export type ConfigBounds = [
   [xMin: number, yMin: number],
   [xMax: number, yMax: number],
 ]
 
-interface ConfigPlugin {
+export interface ConfigPlugin {
   /**
    * 启用的额外配置 key 列表
    * @example ['1_6_island']
@@ -235,4 +235,4 @@ export interface DadianConfig {
   pluginsNeigui?: Record<string, ConfigPlugin>
 }
 
-export const getDadianJson = () => configInstance.Get<DadianConfig | null>('/dadian.json')
+export const getDadianJson = () => configInstance.Get<DadianConfig | null, DadianConfig | null>('/dadian.json')

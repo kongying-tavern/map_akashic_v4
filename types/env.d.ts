@@ -13,6 +13,8 @@ interface ImportMetaEnv {
   readonly VITE_API_BASE: string
   /** 用于渲染底图等信息的基础配置，必须提供此配置才能显示地图和相关点位数据 */
   readonly VITE_APP_CONFIG_URL: string
+  /** 底图资源地址 */
+  readonly VITE_TILE_ASSETS_BASE: string
 
   /** 基础配置端点代理 */
   readonly VITE_APP_CONFIG_URL_PROXY: string
