@@ -95,7 +95,7 @@ export interface ConfigExtra {
    * 附加层级，不只限于地下
    * @note 由于早期设计失误，这里暂时不更改字段名称
    */
-  'underground'?: {
+  underground?: {
     useDetail?: boolean
     /**
      * 可用的附加层级
@@ -104,10 +104,7 @@ export interface ConfigExtra {
   }
 }
 
-export type ConfigBounds = [
-  [xMin: number, yMin: number],
-  [xMax: number, yMax: number],
-]
+export type ConfigBounds = [[xMin: number, yMin: number], [xMax: number, yMax: number]]
 
 export interface ConfigPlugin {
   /**
@@ -235,4 +232,5 @@ export interface DadianConfig {
   pluginsNeigui?: Record<string, ConfigPlugin>
 }
 
-export const getDadianJson = () => configInstance.Get<DadianConfig | null, DadianConfig | null>('/dadian.json')
+export const getDadianJson = () =>
+  configInstance.Get<DadianConfig | null, DadianConfig | null>('/dadian.json')

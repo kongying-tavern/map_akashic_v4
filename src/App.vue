@@ -9,16 +9,21 @@ const {
   state: data,
   error,
   isLoading,
-} = useAsyncState(configStore.loadConfig, {}, {
-  immediate: true,
-})
+} = useAsyncState(
+  async () => {
+    const config = await configStore.loadConfig()
+    return configStore.loadConfig
+  },
+  null,
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <ConfigProvider>
-    <div v-if="isLoading">
-      Loading Config ...
-    </div>
+    <div v-if="isLoading">Loading Config ...</div>
     <div v-else-if="!data">
       {{ error }}
     </div>

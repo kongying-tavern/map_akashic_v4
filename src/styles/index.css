@@ -75,7 +75,7 @@ body.grid {
   display: grid;
   place-content: center;
   z-index: 1000;
-  background: light-dark(#FFF, #333);
+  background: light-dark(#fff, #333);
   transition: opacity 0.5s ease;
 }
 #loading-container.exit {

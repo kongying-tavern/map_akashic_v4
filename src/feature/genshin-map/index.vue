@@ -1,110 +1,65 @@
 <script setup lang="ts">
-import type { UnwrapedTileConfig } from '@/stores'
-import { BitmapLayer, Deck, OrbitController, OrthographicView, PathLayer, TileLayer } from 'deck.gl'
+import { Deck, OrbitController, OrthographicView, OrthographicViewState } from 'deck.gl'
+import { createTileLayer } from './layers/tile-layer'
+import { ResolvedTileset } from './types'
 
 const props = defineProps<{
-  config: UnwrapedTileConfig
+  config: ResolvedTileset
 }>()
 
-const deckRef = shallowRef<Deck<OrthographicView>>()
 const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef')
 
-const ZOOM_MAPPING = 13
+const deckRef = shallowRef<Deck<OrthographicView>>()
 
-interface TileData {
-  byteLength: number
-  image: ImageBitmap
-  url: string
-}
+const injectViewState = shallowRef<OrthographicViewState>({
+  minZoom: -3,
+  maxZoom: 0,
+})
+
+/** 仅用于 UI 反馈，不能通过修改此值来实现视图变化 */
+const readonlyViewState = shallowRef<OrthographicViewState>({
+  ...injectViewState.value,
+  target: [0, 0],
+  zoom: 0,
+})
 
 onMounted(() => {
   const canvas = canvasRef.value
-  if (!canvas)
-    return
+  if (!canvas) return
 
-  const {
-    id,
-    tilesId,
-    center: [cx, cy] = [0, 0],
-    size: [w, h] = [0, 0],
-    tilesOffset: [ox, oy] = [0, 0],
-    extension = 'png',
-    settings: {
-      zoom: initZoom = 0,
-    } = {},
-  } = props.config
+  const { config } = props
 
-  const tileLayerBaseUrl = `${import.meta.env.VITE_TILE_ASSETS_BASE}/tiles_${tilesId}`
-
-  const tileLayer = new TileLayer<TileData | null>({
-    id,
-    tileSize: 256,
-    data: undefined,
-    minZoom: -3, // 固定值，对应服务端存储底图的 level 10
-    maxZoom: 0, // 固定值，对应服务端存储底图的 level 13
-    extent: [ox, h + oy, w + ox, oy],
-    getTileData: async ({ index, signal }) => {
-      if (signal?.aborted)
-        return null
-      const url = `${tileLayerBaseUrl}/${index.z + ZOOM_MAPPING}/${index.x}_${index.y}.${extension || 'png'}`
-      try {
-        const res = await fetch(url, { mode: 'cors', method: 'GET' })
-        const blob = await res.blob()
-        const bmp = await createImageBitmap(blob)
-        return {
-          byteLength: blob.size,
-          image: bmp,
-          url,
-        } satisfies TileData
-      }
-      catch {
-        return null
-      }
-    },
-    renderSubLayers: (props) => {
-      const [[xmin, ymin], [xmax, ymax]] = props.tile.boundingBox
-      if (!props.data) {
-        return null
-      }
-      const { url, image } = props.data
-      return new BitmapLayer({
-        id: url,
-        image,
-        bounds: [xmin, ymax, xmax, ymin],
-      })
-    },
+  const tileLayer = createTileLayer(config, {
+    debug: true,
   })
 
-  const borderLayer = new PathLayer({
-    getWidth: 20,
-    getColor: () => [255, 0, 0],
-    data: [
-      {
-        name: 'bounds',
-        path: [
-          [ox, h + oy],
-          [w + ox, h + oy],
-          [w + ox, oy],
-          [ox, oy],
-          [ox, h + oy],
-        ],
-      },
-    ],
-  })
+  const [initX, initY]: [number, number] = config.settings?.center ?? [0, 0]
+  const initZoom = config.settings?.zoom ?? 0
+
+  const initialViewState: OrthographicViewState = {
+    ...injectViewState.value,
+    target: [initX + config.center[0], initY + config.center[1]],
+    zoom: initZoom,
+  }
+  readonlyViewState.value = initialViewState
 
   const deck = new Deck<OrthographicView>({
     canvas,
     views: new OrthographicView({
       controller: OrbitController,
     }),
-    initialViewState: {
-      target: [cx, cy],
-      zoom: initZoom,
+    controller: {
+      dragMode: 'pan',
     },
-    layers: [
-      tileLayer,
-      borderLayer,
-    ],
+    initialViewState: initialViewState,
+    layers: [...tileLayer],
+    onViewStateChange: ({ viewState: newState }) => {
+      readonlyViewState.value = newState
+      return {
+        ...injectViewState.value,
+        ...newState,
+      }
+    },
   })
 
   deckRef.value = deck
@@ -112,18 +67,21 @@ onMounted(() => {
 
 onUnmounted(() => {
   const deck = deckRef.value
-  if (!deck)
-    return
+  if (!deck) return
   deck.finalize()
 })
 </script>
 
 <template>
-  <div class="relative w-full h-full overflow-hidden relative">
+  <div class="relative w-full h-full overflow-hidden relative bg-black">
     <canvas ref="canvasRef" />
 
-    <div class="absolute left-4 top-4 text-sm">
-      {{ `ID: ${$props.config.id}` }}
+    <div class="absolute left-4 top-4 text-sm text-white pointer-events-none">
+      <pre>{{ JSON.stringify($props.config, null, 2) }}</pre>
+    </div>
+
+    <div class="absolute right-4 top-4 text-sm text-white pointer-events-none">
+      <pre>{{ JSON.stringify(readonlyViewState, null, 2) }}</pre>
     </div>
   </div>
 </template>

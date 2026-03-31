@@ -8,8 +8,7 @@ import { createApis, mountApis, withConfigType } from './createApis'
 const { onAuthRequired } = createClientTokenAuthentication({
   assignToken: (req) => {
     const { token } = useUserStore()
-    if (token)
-      req.config.headers.Authorization = token
+    if (token) req.config.headers.Authorization = token
   },
 })
 

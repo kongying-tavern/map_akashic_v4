@@ -6,6 +6,6 @@ export const router = createRouter({
   routes,
 })
 
-if (import.meta.env.DEV) {
+if (import.meta.env) {
   handleHotUpdate(router)
 }

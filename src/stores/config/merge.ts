@@ -1,17 +1,5 @@
 import type { ConfigTileLayer, DadianConfig } from '@/api'
-
-export interface UnwrapedTileConfig {
-  center?: [x: number, y: number]
-  extension: string
-  id: string
-  settings?: {
-    center?: [x: number, y: number]
-    zoom?: number
-  }
-  size?: [width: number, height: number]
-  tilesId: string
-  tilesOffset?: [x: number, y: number]
-}
+import type { ResolvedTileset } from '@/feature/genshin-map/types'
 
 // 辅助函数：判断是否为「纯对象」（排除数组、null、特殊对象）
 const isPlainObject = (obj: unknown): obj is Record<string, unknown> => {
@@ -31,7 +19,7 @@ const isPlainObject = (obj: unknown): obj is Record<string, unknown> => {
  * @param b 合并的源值
  * @returns 合并后的 a
  */
-function deepMerge(a: unknown, b: unknown): unknown {
+const deepMerge = (a: unknown, b: unknown): unknown => {
   // 情况1：不是两个纯对象 → 直接用 b 覆盖 a
   if (!isPlainObject(a) || !isPlainObject(b)) {
     return b
@@ -64,38 +52,34 @@ const mergeConfigs = (configsList: ConfigTileLayer[]) => {
   return tree
 }
 
-// const url = `${BASE_URL}/tiles_${code}/${z + ZOOM_MAPPING}/${x}_${y}.${extension}`
-
 const decodeExtend = (config: Record<string, ConfigTileLayer>) => {
-  const result: UnwrapedTileConfig[] = []
+  const result: ResolvedTileset[] = []
   for (const [areaCode, node] of Object.entries(config)) {
-    if (node.extend)
+    if (node.extend) {
       deepMerge(node, config[node.extend])
+    }
     result.push({
       id: areaCode,
-      tilesId: node.code ?? '',
-      extension: node.extension ?? '',
-      center: node.center,
-      size: node.size,
-      tilesOffset: node.tilesOffset,
+      pathId: node.code ?? '',
+      extension: node.extension ?? 'png',
+      center: node.center ?? [0, 0],
+      size: node.size ?? [1024, 1024],
+      tilesOffset: node.tilesOffset ?? [0, 0],
       settings: node.settings,
     })
   }
   return result
 }
 
-const reg = /^[AC]:[A-Z]+/
+const TILE_ID_REG = /^[AC]:[A-Z]+/
 
 /**
  * 主函数：基于索引树处理 tiles/tilesNeigui 继承
  */
 export const parseTilesConfigs = (dadianConfig: DadianConfig) => {
-  const tree = mergeConfigs([
-    dadianConfig.tiles ?? {},
-    dadianConfig.tilesNeigui ?? {},
-  ])
+  const tree = mergeConfigs([dadianConfig.tiles ?? {}, dadianConfig.tilesNeigui ?? {}])
   return decodeExtend(tree).filter((config) => {
     const { id } = config
-    return reg.test(id)
+    return TILE_ID_REG.test(id)
   })
 }

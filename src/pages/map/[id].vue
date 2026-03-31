@@ -13,8 +13,6 @@ const tile = computed(() => {
 </script>
 
 <template>
-  <div v-if="!tile">
-    Tile not found
-  </div>
+  <div v-if="!tile">Tile not found</div>
   <GenshinMap v-else :config="tile" />
 </template>
