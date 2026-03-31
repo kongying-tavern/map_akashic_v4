@@ -7,16 +7,14 @@
     "rootDir": ".",
     "module": "esnext",
     "moduleResolution": "bundler",
+    "moduleDetection": "auto",
     "paths": {
       "@/*": ["src/*"]
     },
+    "types": ["vite/client"],
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": [
-    "index.html",
-    "types",
-    "src"
-  ]
+  "include": ["index.html", "types", "src"]
 }

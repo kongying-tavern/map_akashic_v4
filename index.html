@@ -1,44 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>%VITE_APP_TITLE%</title>
-  <link rel="icon" href="/favicon.png">
-  <link rel="stylesheet" href="./src/styles/index.css">
-</head>
-<body class="grid">
-  <!-- 首屏 loading -->
-  <div id="loading-container" class="fixed-page">
-    <div id="loading"></div>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>%VITE_APP_TITLE%</title>
+    <link rel="stylesheet" href="./src/styles/index.css" />
+  </head>
+  <body class="grid">
+    <!-- 首屏 loading -->
+    <div id="loading-container" class="fixed-page">
+      <div id="loading"></div>
+    </div>
 
-  <!-- 应用容器 -->
-  <div id="app" class="fixed-page hidden"></div>
+    <!-- 应用容器 -->
+    <div id="app" class="fixed-page hidden"></div>
 
-  <!-- 初始化 JS -->
-  <script type="module">
-    const app = document.getElementById('app')
-    const loadingContainer = document.getElementById('loading-container')
-    loadingContainer.addEventListener('transitionend', () => {
-      loadingContainer.remove()
-    }, { once: true })
-    const firstLoading = document.getElementById('loading')
-    const firstLoadingAnimation = new Promise((resolve) => {
-      firstLoading.addEventListener('animationend', resolve, { once: true })
-    })
-    Promise.all([
-      import('./src/main.ts')
-      .then(() => {
-        // 如果加载时间小于 1s，则强制动画时长为 1s
-        firstLoading.style.animationDuration = '1s'
-      }),
-      // 至少等待 loading 动画播放完毕后才进入应用
-      firstLoadingAnimation,
-    ]).then(() => {
-      loadingContainer.classList.toggle('exit', true)
-      app.classList.remove('hidden')
-    })
-  </script>
-</body>
+    <!-- 初始化 JS -->
+    <script type="module">
+      const app = document.getElementById('app')
+      const loadingContainer = document.getElementById('loading-container')
+      loadingContainer.addEventListener(
+        'transitionend',
+        () => {
+          loadingContainer.remove()
+        },
+        { once: true },
+      )
+      const firstLoading = document.getElementById('loading')
+      const firstLoadingAnimation = new Promise((resolve) => {
+        firstLoading.addEventListener('animationend', resolve, { once: true })
+      })
+      Promise.all([
+        import('./src/main.ts').then(() => {
+          // 如果加载时间小于 1s，则强制动画时长为 1s
+          firstLoading.style.animationDuration = '1s'
+        }),
+        // 至少等待 loading 动画播放完毕后才进入应用
+        firstLoadingAnimation,
+      ]).then(() => {
+        loadingContainer.classList.toggle('exit', true)
+        app.classList.remove('hidden')
+      })
+    </script>
+  </body>
 </html>

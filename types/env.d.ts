@@ -7,11 +7,22 @@ interface ViteTypeOptions {
 }
 
 interface ImportMetaEnv {
+  /** 基础 URL */
+  readonly BASE_URL: string
+  /** 是否为开发环境 */
+  readonly DEV: boolean
+  /** 环境模式 */
+  readonly MODE: string
+  /** 是否为生产环境 */
+  readonly PROD: boolean
+  /** 是否为 SSR 环境 */
+  readonly SSR: boolean
+
   /** 应用标题 */
   readonly VITE_APP_TITLE: string
   /** 基础服务端点 */
   readonly VITE_API_BASE: string
-  /** 用于渲染底图等信息的基础配置，必须提供此配置才能显示地图和相关点位数据 */
+  /** 订阅配置地址 */
   readonly VITE_APP_CONFIG_URL: string
   /** 底图资源地址 */
   readonly VITE_TILE_ASSETS_BASE: string

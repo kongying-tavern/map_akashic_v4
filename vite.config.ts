@@ -1,16 +1,25 @@
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import Vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, PluginOption } from 'vite'
 import VueRouter from 'vue-router/vite'
-import { version } from './package.json'
+import { envSchema } from './envs/schema'
+import { version } from './package.json' with { type: 'json' }
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, path.resolve('envs')) as unknown as ImportMetaEnv
-  return {
-    base: './',
+  try {
+    envSchema.parse(env)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : JSON.stringify(error)
+    throw new Error(`[Vite] 启动失败, 缺失关键环境变量: ${message}`)
+  }
 
+  return {
     envDir: path.resolve(__dirname, 'envs'),
 
     define: {
@@ -33,7 +42,7 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_APP_CONFIG_URL_PROXY,
           changeOrigin: true,
           rewrite: (path) => {
-            console.log('[target]', path.replace(env.VITE_APP_CONFIG_URL, ''))
+            console.log('[path]', path)
             return path.replace(env.VITE_APP_CONFIG_URL, '')
           },
         },
@@ -42,7 +51,7 @@ export default defineConfig(({ mode }) => {
 
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, 'src'),
+        '@/': `${path.resolve(__dirname, 'src')}/`,
       },
     },
 
@@ -50,7 +59,7 @@ export default defineConfig(({ mode }) => {
       VueRouter({
         dts: path.resolve(__dirname, 'types/router.d.ts'),
       }),
-      Vue(),
+      Vue() as PluginOption,
       UnoCSS(),
       AutoImport({
         dts: path.resolve(__dirname, 'types/auto-import.d.ts'),

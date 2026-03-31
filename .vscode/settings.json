@@ -1,12 +1,20 @@
 {
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "always"
+    "source.format.oxc": "always",
+    "source.fixAll.oxc": "always"
   },
-
-  // 启用文件折叠
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
     "tsconfig.json": "tsconfig.*.json",
     "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock"
-  }
+  },
+  "files.associations": {
+    ".env": "dotenv",
+    ".env.*.local": "dotenv"
+  },
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "oxc.fmt.configPath": "./.oxfmtrc.json",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "json.schemaDownload.enable": true
 }

@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "src/api/apiDefinitions.ts",
+    "src/api/globals.d.ts",
+    "src/api/createApis.ts",
+    "pnpm-lock.yaml",
+    "*.md"
+  ],
+  "trailingComma": "all",
+  "semi": false,
+  "singleQuote": true,
+  "endOfLine": "lf",
+  "sortImports": {
+    "newlinesBetween": false
+  }
+}

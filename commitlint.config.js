@@ -7,7 +7,7 @@ const __dirname = path.resolve()
 /** 动态读取 src 目录下的子目录 */
 const srcDirs = fs
   .readdirSync(path.resolve(__dirname, 'src'))
-  .filter(dir => fs.statSync(path.resolve(__dirname, 'src', dir)).isDirectory())
+  .filter((dir) => fs.statSync(path.resolve(__dirname, 'src', dir)).isDirectory())
 
 export default defineConfig({
   /** @see https://commitlint.js.org/reference/rules.html */
@@ -33,11 +33,7 @@ export default defineConfig({
      */
     'header-max-length': [2, 'always', 72],
     'scope-case': [2, 'always', 'lower-case'],
-    'subject-case': [
-      1,
-      'never',
-      ['sentence-case', 'start-case', 'pascal-case', 'upper-case'],
-    ],
+    'subject-case': [1, 'never', ['sentence-case', 'start-case', 'pascal-case', 'upper-case']],
     'subject-empty': [2, 'never'],
     'subject-full-stop': [2, 'never', '.'],
     'type-case': [2, 'always', 'lower-case'],
@@ -47,21 +43,25 @@ export default defineConfig({
      * ^^^^
      * 与当前配置中的 `prompt.types[number].value` 的值对应
      */
-    'type-enum': [2, 'always', [
-      'feat',
-      'fix',
-      'docs',
-      'style',
-      'refactor',
-      'perf',
-      'test',
-      'build',
-      'ci',
-      'revert',
-      'chore',
-      'deps',
-      'init',
-    ]],
+    'type-enum': [
+      2,
+      'always',
+      [
+        'feat',
+        'fix',
+        'docs',
+        'style',
+        'refactor',
+        'perf',
+        'test',
+        'build',
+        'ci',
+        'revert',
+        'chore',
+        'deps',
+        'init',
+      ],
+    ],
   },
 
   prompt: {
