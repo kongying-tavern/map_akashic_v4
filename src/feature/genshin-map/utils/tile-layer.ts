@@ -29,7 +29,12 @@ export const getExtent = (data: ResolvedTileset) => {
   }
 }
 
-export const clampTileZoom = (zoom: number, minZoom: number, maxZoom: number, zoomOffset: number) => {
+export const clampTileZoom = (
+  zoom: number,
+  minZoom: number,
+  maxZoom: number,
+  zoomOffset: number,
+) => {
   // Align with Deck.GL TileLayer (Tileset2D#getTileIndices):
   // For non-geospatial viewport, z = ceil(viewport.zoom) + zoomOffset.
   const z = Math.ceil(zoom) + zoomOffset
@@ -43,17 +48,27 @@ export const getViewportBounds = (viewport: Viewport) => {
   const halfHeight = (viewport.height ?? 0) / (2 * scale)
   const targetX = viewport.center?.[0] ?? 0
   const targetY = viewport.center?.[1] ?? 0
-  return [targetX - halfWidth, targetY - halfHeight, targetX + halfWidth, targetY + halfHeight] as const
+  return [
+    targetX - halfWidth,
+    targetY - halfHeight,
+    targetX + halfWidth,
+    targetY + halfHeight,
+  ] as const
 }
 
-export const createTileGridData = (
-  extent: { xmin: number; ymin: number; xmax: number; ymax: number },
-  viewportBounds: readonly [number, number, number, number],
-  step: number,
-  z: number,
-) => {
+export const createTileGridData = ({
+  extent,
+  viewportBounds,
+  step,
+  z,
+}: {
+  extent: { xmin: number; ymin: number; xmax: number; ymax: number }
+  viewportBounds?: readonly [number, number, number, number]
+  step: number
+  z: number
+}) => {
   const { xmin, ymin, xmax, ymax } = extent
-  const [localMinX, localMinY, localMaxX, localMaxY] = viewportBounds
+  const [localMinX, localMinY, localMaxX, localMaxY] = viewportBounds ?? [xmin, ymin, xmax, ymax]
   // Align with Deck.GL getBoundingBox + getIdentityTileIndices:
   // clamp bounds into extent, then iterate [floor(min), max) on tile coordinates.
   const boundedMinX = Math.max(Math.min(localMinX, xmax), xmin)
@@ -87,5 +102,6 @@ export const createTileGridData = (
       })
     }
   }
+
   return tileGridData
 }

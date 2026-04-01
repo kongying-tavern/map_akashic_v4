@@ -39,6 +39,7 @@ const TILE_GRID_SIZE = 256
 const TILE_GRID_MIN_ZOOM = -3
 const TILE_GRID_MAX_ZOOM = 0
 const TILE_GRID_ZOOM_OFFSET = 0
+const PRE_RENDER_CONCURRENCY = Math.max(1, navigator.hardwareConcurrency || 4)
 
 const loadTileImage = async (url: string, signal?: AbortSignal) => {
   const res = await fetch(url, {
@@ -55,10 +56,46 @@ const loadTileImage = async (url: string, signal?: AbortSignal) => {
   return { bmp, blob }
 }
 
+const createCanvas2D = (width: number, height: number) => {
+  const useOffscreen = typeof OffscreenCanvas !== 'undefined'
+  const canvas = useOffscreen
+    ? new OffscreenCanvas(width, height)
+    : Object.assign(document.createElement('canvas'), {
+        width,
+        height,
+      })
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    throw new Error('Failed to create 2D context.')
+  }
+  return { canvas, ctx, useOffscreen }
+}
+
+const canvasToBlob = async (
+  canvas: OffscreenCanvas | HTMLCanvasElement,
+  useOffscreen: boolean,
+  type = 'image/png',
+) => {
+  if (useOffscreen) {
+    return (canvas as OffscreenCanvas).convertToBlob({ type })
+  }
+  return new Promise<Blob>((resolve, reject) => {
+    ;(canvas as HTMLCanvasElement).toBlob((result) => {
+      if (!result) {
+        reject(new Error('Failed to export canvas blob.'))
+        return
+      }
+      resolve(result)
+    }, type)
+  })
+}
+
 const createTileLayer = (
   props: TilesetLayer['props'],
   options?: {
     getOrLoadTile?: (id: string, url: string) => Promise<ImageBitmap>
+    minZoom?: number
+    revision?: number
   },
 ) => {
   if (!props.data) {
@@ -71,13 +108,14 @@ const createTileLayer = (
     center: [cx, cy],
   } = props.data
   const { xmin, ymin, xmax, ymax } = getExtent(props.data)
+  console.log('[minZoom]', options?.minZoom ?? TILE_GRID_MIN_ZOOM)
   return new TileLayer<TileSublayerProps | { url: string; error: unknown } | null>({
-    id: `tile(${id})`,
+    id: `tile(${id})@${options?.revision ?? 0}`,
     tileSize: 256,
     coordinateOrigin: [cx, cy, 0],
     coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
     data: undefined,
-    minZoom: -3, // 固定值，对应服务端存储底图的 level 10
+    minZoom: options?.minZoom ?? TILE_GRID_MIN_ZOOM,
     maxZoom: 0, // 固定值，对应服务端存储底图的 level 13
     maxRequests: navigator.hardwareConcurrency,
     extent: [xmin, ymin, xmax, ymax],
@@ -133,7 +171,13 @@ const createTileLayer = (
   })
 }
 
-const createTileGridLayer = (props: TilesetLayer['props'], viewport: Viewport) => {
+const createTileGridLayer = (
+  props: TilesetLayer['props'],
+  viewport: Viewport,
+  options?: {
+    minZoom?: number
+  },
+) => {
   if (!props.data) {
     return null
   }
@@ -145,17 +189,17 @@ const createTileGridLayer = (props: TilesetLayer['props'], viewport: Viewport) =
   const [viewMinX, viewMinY, viewMaxX, viewMaxY] = getViewportBounds(viewport)
   const z = clampTileZoom(
     viewport.zoom ?? 0,
-    TILE_GRID_MIN_ZOOM,
+    options?.minZoom ?? TILE_GRID_MIN_ZOOM,
     TILE_GRID_MAX_ZOOM,
     TILE_GRID_ZOOM_OFFSET,
   )
   const step = TILE_GRID_SIZE * 2 ** (TILE_GRID_MAX_ZOOM - z)
-  const tileGridData = createTileGridData(
-    { xmin, ymin, xmax, ymax },
-    [viewMinX, viewMinY, viewMaxX, viewMaxY],
+  const tileGridData = createTileGridData({
+    extent: { xmin, ymin, xmax, ymax },
+    viewportBounds: [viewMinX, viewMinY, viewMaxX, viewMaxY],
     step,
     z,
-  )
+  })
 
   const path = new PathLayer<TileGridData, PathStyleExtensionProps>({
     id: `tileGrid(${id})`,
@@ -268,6 +312,7 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
       ...props,
       id: `tileset(${props.data?.id ?? 'null'})`,
     })
+    Reflect.set(globalThis, 'tilesetLayer', this)
   }
 
   #handleMap = new Map<string, FileSystemDirectoryHandle>()
@@ -276,6 +321,10 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
   #cacheInflightMap = new Map<string, Promise<ImageBitmap>>()
   #cacheMemoryMap = new Map<string, { bmp: ImageBitmap; byteLength: number }>()
   #cacheMemoryUsage = 0
+  #preRenderPromise: Promise<unknown> | null = null
+  #preRenderedPathId: string | null = null
+  #runtimeMinZoom = TILE_GRID_MIN_ZOOM
+  #tileLayerRevision = 0
 
   #getCacheHandle = async (pathId: string) => {
     const cacheHandle = this.#handleMap.get(pathId)
@@ -400,6 +449,204 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
     this.#cacheSetPromiseMap.set(id, promise)
   }
 
+  #computePreRenderMinZoom = (tilesAtMinZoom: TileGridData[]) => {
+    let currentTiles = tilesAtMinZoom
+    let currentZoom = TILE_GRID_MIN_ZOOM
+    while (currentTiles.length > 1) {
+      const nextZoom = currentZoom - 1
+      const step = TILE_GRID_SIZE * 2 ** (TILE_GRID_MAX_ZOOM - nextZoom)
+      const { xmin, ymin, xmax, ymax } = getExtent(this.props.data!)
+      const nextTiles = createTileGridData({
+        extent: { xmin, ymin, xmax, ymax },
+        step,
+        z: nextZoom,
+      })
+      if (nextTiles.length === currentTiles.length) {
+        break
+      }
+      currentZoom = nextZoom
+      currentTiles = nextTiles
+      if (currentTiles.length <= 1) {
+        break
+      }
+    }
+    return currentZoom
+  }
+
+  #cacheGeneratedTile = async (cacheId: string, canvas: OffscreenCanvas | HTMLCanvasElement) => {
+    const useOffscreen = typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas
+    const blob = await canvasToBlob(canvas, useOffscreen, 'image/png')
+    const bmp = await createImageBitmap(blob)
+    this.#setMemoryCache(cacheId, bmp, bmp.width * bmp.height * 4)
+    await this.#setCache(cacheId, blob)
+    return bmp
+  }
+
+  preRender = async (options?: {
+    backgroundColor?: string
+    onProgress?: (loaded: number, total: number) => void
+  }) => {
+    if (!this.props.data) {
+      throw new Error('preRender requires valid tileset data.')
+    }
+    const {
+      pathId,
+      extension,
+      size: [w, h],
+    } = this.props.data
+    const { xmin, ymin, xmax, ymax } = getExtent(this.props.data)
+    const zoom = TILE_GRID_MIN_ZOOM
+    const z = clampTileZoom(zoom, TILE_GRID_MIN_ZOOM, TILE_GRID_MAX_ZOOM, TILE_GRID_ZOOM_OFFSET)
+    const step = TILE_GRID_SIZE * 2 ** (TILE_GRID_MAX_ZOOM - z)
+    const minZoomTiles = createTileGridData({
+      extent: { xmin, ymin, xmax, ymax },
+      step,
+      z,
+    })
+    if (minZoomTiles.length === 0) {
+      throw new Error(`No tiles found for zoom=${zoom} (z=${z}).`)
+    }
+    const preRenderMinZoom = this.#computePreRenderMinZoom(minZoomTiles)
+
+    const minTileX = Math.min(...minZoomTiles.map((tile) => tile.x))
+    const minTileY = Math.min(...minZoomTiles.map((tile) => tile.y))
+    const maxTileX = Math.max(...minZoomTiles.map((tile) => tile.x))
+    const maxTileY = Math.max(...minZoomTiles.map((tile) => tile.y))
+    const tileCols = maxTileX - minTileX + 1
+    const tileRows = maxTileY - minTileY + 1
+
+    const canvasWidth = tileCols * TILE_GRID_SIZE
+    const canvasHeight = tileRows * TILE_GRID_SIZE
+    const { canvas, ctx, useOffscreen } = createCanvas2D(canvasWidth, canvasHeight)
+    if (options?.backgroundColor) {
+      ctx.fillStyle = options.backgroundColor
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+    }
+
+    const total = minZoomTiles.length
+    let loaded = 0
+    let cursor = 0
+    const queue = [...minZoomTiles]
+    const levelBitmapMap = new Map<string, ImageBitmap>()
+    const workers = Array.from(
+      { length: Math.min(PRE_RENDER_CONCURRENCY, queue.length) },
+      async () => {
+        while (true) {
+          const current = queue[cursor]
+          cursor += 1
+          if (!current) {
+            return
+          }
+          const { x, y } = current
+          const url = `${BASE_URL}${pathId}/${z + ZOOM_MAPPING}/${x}_${y}.${extension}`
+          const cacheId = `${pathId}_${z + ZOOM_MAPPING}_${x}_${y}.${extension}`
+          try {
+            const bmp = await this.#getOrLoadTile(cacheId, url)
+            const dx = (x - minTileX) * TILE_GRID_SIZE
+            const dy = (y - minTileY) * TILE_GRID_SIZE
+            ctx.drawImage(bmp, dx, dy, TILE_GRID_SIZE, TILE_GRID_SIZE)
+            levelBitmapMap.set(`${x}_${y}`, bmp)
+          } catch (error) {
+            console.error(`preRender failed tile: ${url}.`, error)
+          } finally {
+            loaded += 1
+            options?.onProgress?.(loaded, total)
+          }
+        }
+      },
+    )
+    await Promise.all(workers)
+
+    let previousLevelMap = levelBitmapMap
+    for (let currentZoom = z - 1; currentZoom >= preRenderMinZoom; currentZoom -= 1) {
+      const currentStep = TILE_GRID_SIZE * 2 ** (TILE_GRID_MAX_ZOOM - currentZoom)
+      const currentTiles = createTileGridData({
+        extent: { xmin, ymin, xmax, ymax },
+        step: currentStep,
+        z: currentZoom,
+      })
+      const currentLevelMap = new Map<string, ImageBitmap>()
+      for (const tile of currentTiles) {
+        const tileCanvasObj = createCanvas2D(TILE_GRID_SIZE, TILE_GRID_SIZE)
+        const tileCanvas = tileCanvasObj.canvas
+        const tileCtx = tileCanvasObj.ctx
+        let hasChild = false
+        for (let childXOffset = 0; childXOffset <= 1; childXOffset += 1) {
+          for (let childYOffset = 0; childYOffset <= 1; childYOffset += 1) {
+            const childX = tile.x * 2 + childXOffset
+            const childY = tile.y * 2 + childYOffset
+            const childKey = `${childX}_${childY}`
+            const childBmp = previousLevelMap.get(childKey)
+            if (!childBmp) {
+              continue
+            }
+            hasChild = true
+            tileCtx.drawImage(
+              childBmp,
+              childXOffset * (TILE_GRID_SIZE / 2),
+              childYOffset * (TILE_GRID_SIZE / 2),
+              TILE_GRID_SIZE / 2,
+              TILE_GRID_SIZE / 2,
+            )
+          }
+        }
+        if (!hasChild) {
+          continue
+        }
+        const cacheId = `${pathId}_${currentZoom + ZOOM_MAPPING}_${tile.x}_${tile.y}.${extension}`
+        const bmp = await this.#cacheGeneratedTile(cacheId, tileCanvas)
+        currentLevelMap.set(`${tile.x}_${tile.y}`, bmp)
+      }
+      previousLevelMap = currentLevelMap
+    }
+
+    const blob = await canvasToBlob(canvas, useOffscreen, 'image/png')
+    const objectUrl = URL.createObjectURL(blob)
+    this.#runtimeMinZoom = preRenderMinZoom
+    this.#tileLayerRevision += 1
+    this.setNeedsUpdate()
+    this.context.deck?.redraw('preRender cache updated')
+    return {
+      z,
+      zoom,
+      minZoom: preRenderMinZoom,
+      tileCount: total,
+      tileRange: {
+        minX: minTileX,
+        maxX: maxTileX,
+        minY: minTileY,
+        maxY: maxTileY,
+      },
+      canvasSize: [canvasWidth, canvasHeight] as const,
+      sourceSize: [w, h] as const,
+      blob,
+      objectUrl,
+      revoke: () => URL.revokeObjectURL(objectUrl),
+    }
+  }
+
+  updateState: CompositeLayer<TilesetLayerProps>['updateState'] = (params) => {
+    super.updateState(params)
+    const pathId = this.props.data?.pathId
+    if (!pathId) {
+      this.#runtimeMinZoom = TILE_GRID_MIN_ZOOM
+      this.#preRenderedPathId = null
+      this.#preRenderPromise = null
+      return
+    }
+    if (this.#preRenderedPathId === pathId || this.#preRenderPromise) {
+      return
+    }
+    const preRenderPromise = this.preRender().catch((error) => {
+      console.error('preRender failed.', error)
+    })
+    this.#preRenderPromise = preRenderPromise
+    preRenderPromise.finally(() => {
+      this.#preRenderedPathId = pathId
+      this.#preRenderPromise = null
+    })
+  }
+
   shouldUpdateState: CompositeLayer<TilesetLayerProps>['shouldUpdateState'] = ({ changeFlags }) => {
     return changeFlags.somethingChanged
   }
@@ -407,8 +654,13 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
   renderLayers = (): (Layer | null)[] => {
     const tileLayer = createTileLayer(this.props, {
       getOrLoadTile: this.#getOrLoadTile,
+      minZoom: this.#runtimeMinZoom,
+      revision: this.#tileLayerRevision,
     })
-    const tileGridLayer = createTileGridLayer(this.props, this.context.viewport) ?? []
+    const tileGridLayer =
+      createTileGridLayer(this.props, this.context.viewport, {
+        minZoom: this.#runtimeMinZoom,
+      }) ?? []
     const borderLayer = createBorderLayer(this.props)
     const originLayer = createOriginLayer(this.props)
     const tileInfoLayer = createTileInfoLayer(this.props)
@@ -426,5 +678,9 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
     }
     this.#cacheMemoryMap.clear()
     this.#cacheMemoryUsage = 0
+    this.#preRenderPromise = null
+    this.#preRenderedPathId = null
+    this.#runtimeMinZoom = TILE_GRID_MIN_ZOOM
+    this.#tileLayerRevision = 0
   }
 }
