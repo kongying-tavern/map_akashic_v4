@@ -20,7 +20,9 @@ export const useConfigStore = defineStore('config', () => {
 
   const loadConfig = async () => {
     const res = await configApi.getDadianJson()
-    if (!res) throw new Error('Failed to load config')
+    if (!res) {
+      throw new Error('Failed to load config')
+    }
     await DadianConfigSchema.parseAsync(res)
     config.value = res
     return res

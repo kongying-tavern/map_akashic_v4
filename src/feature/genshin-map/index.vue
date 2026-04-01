@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Deck, OrbitController, OrthographicView, OrthographicViewState } from 'deck.gl'
-import { createTileLayer } from './layers/tile-layer'
+import { TilesetLayer } from './layers/tile-layer'
 import { ResolvedTileset } from './types'
 
 const props = defineProps<{
@@ -12,8 +12,8 @@ const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef')
 const deckRef = shallowRef<Deck<OrthographicView>>()
 
 const injectViewState = shallowRef<OrthographicViewState>({
-  minZoom: -3,
-  maxZoom: 0,
+  // minZoom: -3,
+  // maxZoom: 0,
 })
 
 /** 仅用于 UI 反馈，不能通过修改此值来实现视图变化 */
@@ -29,8 +29,11 @@ onMounted(() => {
 
   const { config } = props
 
-  const tileLayer = createTileLayer(config, {
-    debug: true,
+  const tileLayer = new TilesetLayer({
+    data: config,
+    showBounds: true,
+    showOrigin: true,
+    showTileInfo: true,
   })
 
   const [initX, initY]: [number, number] = config.settings?.center ?? [0, 0]
@@ -50,9 +53,10 @@ onMounted(() => {
     }),
     controller: {
       dragMode: 'pan',
+      dragRotate: false,
     },
     initialViewState: initialViewState,
-    layers: [...tileLayer],
+    layers: [tileLayer],
     onViewStateChange: ({ viewState: newState }) => {
       readonlyViewState.value = newState
       return {

@@ -176,9 +176,7 @@ const ConfigPluginOverlayConfigSchema = z
 const ConfigPluginSchema = z
   .object({
     extra: z.array(z.keyof(ConfigExtraSchema)).optional().describe('启用的额外配置 key 列表'),
-    extraConfig: ConfigExtraSchema.optional().describe(
-      '额外配置表（key 与 `extra` 中的 key 对应）',
-    ),
+    extraConfig: ConfigExtraSchema.optional().describe('额外配置表'),
     overlay: z.boolean().optional().describe('是否启用叠加图层'),
     overlayConfig: ConfigPluginOverlayConfigSchema.optional().describe('叠加图层配置'),
   })
@@ -198,9 +196,7 @@ export const DadianConfigSchema = z
       .describe('应用配置'),
     editor: z
       .object({
-        fontResources: z
-          .record(z.string(), ConfigFontResourcesSchema)
-          .describe('字体资源（key 样例 `HYWenHei-55S`）'),
+        fontResources: z.record(z.string(), ConfigFontResourcesSchema).describe('字体资源'),
         quickInputSnippets: z.array(z.string()).optional().describe('快速输入片段'),
         refreshTimeSpecial: z
           .array(ConfigDictSchema(z.number()))
@@ -209,14 +205,8 @@ export const DadianConfigSchema = z
       })
       .optional()
       .describe('编辑器配置'),
-    tiles: z
-      .record(z.string(), ConfigTileLayerSchema)
-      .optional()
-      .describe('公测图层配置（key 样例 `A:APPLE:1_6`）'),
-    tilesNeigui: z
-      .record(z.string(), ConfigTileLayerSchema)
-      .optional()
-      .describe('内测图层配置（key 样例 `提瓦特-base0`）'),
+    tiles: z.record(z.string(), ConfigTileLayerSchema).optional().describe('公测图层配置'),
+    tilesNeigui: z.record(z.string(), ConfigTileLayerSchema).optional().describe('内测图层配置'),
     plugins: z.record(z.string(), ConfigPluginSchema).optional().describe('公测插件配置'),
     pluginsNeigui: z.record(z.string(), ConfigPluginSchema).optional().describe('内测插件配置'),
   })

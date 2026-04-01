@@ -1,1 +1,6 @@
-export type { ResolvedTileset, TileSublayerProps, TileLayerFactoryOptions } from './tileset'
+export type {
+  TileSublayerProps,
+  TilesetMeta,
+  TileLayerFactoryOptions,
+  ResolvedTileset,
+} from './tileset'

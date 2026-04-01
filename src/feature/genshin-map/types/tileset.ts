@@ -42,6 +42,11 @@ export interface ResolvedTileset {
   tilesOffset: [x: number, y: number]
 }
 
+export interface TilesetMeta {
+  /** 原点坐标 */
+  origin: [x: number, y: number]
+}
+
 /** TileLayer 子图层属性 */
 export interface TileSublayerProps {
   byteLength: number | null

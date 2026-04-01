@@ -12,7 +12,7 @@ const {
 } = useAsyncState(
   async () => {
     const config = await configStore.loadConfig()
-    return configStore.loadConfig
+    return config
   },
   null,
   {
