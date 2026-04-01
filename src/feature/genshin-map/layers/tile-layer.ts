@@ -26,31 +26,6 @@ export interface TilesetLayerProps {
 const BASE_URL = import.meta.env.VITE_TILE_ASSETS_BASE
 const ZOOM_MAPPING = 13
 
-const cacheTile = async (url: string, data: Blob) => {
-  const root = await navigator.storage.getDirectory()
-  const cacheDir = await root.getDirectoryHandle('cache', { create: true })
-  const { host, pathname } = new URL(url)
-  const id = `${host}_${pathname.replace(/\//g, '-')}`
-  const tileDir = await cacheDir.getDirectoryHandle('tile', { create: true })
-  const tile = await tileDir.getFileHandle(id, { create: true })
-  const writer = await tile.createWritable()
-  await writer.write(data)
-  await writer.close()
-}
-
-const loadTileImage = async (url: string, signal?: AbortSignal) => {
-  const res = await fetch(url, {
-    mode: 'cors',
-    method: 'GET',
-    signal,
-  })
-  const blob = await res.clone().blob()
-  // cache the blob
-  // no need to wait
-  cacheTile(url, blob).catch((error) => console.error(`failed to cache tile: ${url}.`, error))
-  return await createImageBitmap(blob)
-}
-
 const createBmpProps = (url: string, bmp: ImageBitmap): TileSublayerProps => {
   return {
     byteLength: bmp.width * bmp.height * 4, // RGBA
@@ -59,19 +34,19 @@ const createBmpProps = (url: string, bmp: ImageBitmap): TileSublayerProps => {
   }
 }
 
-const getTileCache = async (url: string, _signal?: AbortSignal): Promise<ImageBitmap | null> => {
-  const root = await navigator.storage.getDirectory()
-  const cacheDir = await root.getDirectoryHandle('cache', { create: true })
-  const tileDir = await cacheDir.getDirectoryHandle('tile', { create: true })
-  const { host, pathname } = new URL(url)
-  const id = `${host}_${pathname.replace(/\//g, '-')}`
-  const tile = await tileDir.getFileHandle(id, { create: false }).catch(() => null)
-  if (!tile) {
-    return null
+const loadTileImage = async (url: string, signal?: AbortSignal) => {
+  const res = await fetch(url, {
+    mode: 'cors',
+    method: 'GET',
+    signal,
+  })
+  if (res.status !== 200) {
+    throw new Error(`failed to load tile: ${url}, ${res.statusText}.`)
   }
-  const file = await tile.getFile()
-  const bmp = createImageBitmap(file)
-  return bmp
+  const blob = await res.clone().blob()
+  // cache the blob, no need to wait
+  const bmp = await createImageBitmap(blob)
+  return { bmp, blob }
 }
 
 const getExtent = (data: ResolvedTileset) => {
@@ -90,6 +65,7 @@ const getExtent = (data: ResolvedTileset) => {
 const TILE_GRID_SIZE = 256
 const TILE_GRID_MIN_ZOOM = -3
 const TILE_GRID_MAX_ZOOM = 0
+const TILE_GRID_ZOOM_OFFSET = 0
 
 type TileGridData = {
   x: number
@@ -99,7 +75,9 @@ type TileGridData = {
 }
 
 const clampTileZoom = (zoom: number) => {
-  const z = Math.round(zoom)
+  // Align with Deck.GL TileLayer (Tileset2D#getTileIndices):
+  // For non-geospatial viewport, z = ceil(viewport.zoom) + zoomOffset.
+  const z = Math.ceil(zoom) + TILE_GRID_ZOOM_OFFSET
   return Math.min(TILE_GRID_MAX_ZOOM, Math.max(TILE_GRID_MIN_ZOOM, z))
 }
 
@@ -113,7 +91,13 @@ const getViewportBounds = (viewport: Viewport) => {
   return [targetX - halfWidth, targetY - halfHeight, targetX + halfWidth, targetY + halfHeight]
 }
 
-const createTileLayer = (props: TilesetLayer['props']) => {
+const createTileLayer = (
+  props: TilesetLayer['props'],
+  options?: {
+    getCache?: (id: string) => Promise<ImageBitmap | null>
+    setCache?: (id: string, blob: Blob) => Promise<void>
+  },
+) => {
   if (!props.data) {
     return null
   }
@@ -138,14 +122,16 @@ const createTileLayer = (props: TilesetLayer['props']) => {
         return null
       }
       const url = `${BASE_URL}${pathId}/${z + ZOOM_MAPPING}/${x}_${y}.${extension}`
+      const cacheId = `${pathId}_${z + ZOOM_MAPPING}_${x}_${y}.${extension}`
       try {
         // 首先尝试缓存
-        const bmpCache = await getTileCache(url, signal)
+        const bmpCache = (await options?.getCache?.(cacheId)) ?? null
         if (bmpCache) {
           return createBmpProps(url, bmpCache)
         }
         // 缓存 miss 时从网络加载
-        const bmp = await loadTileImage(url, signal)
+        const { bmp, blob } = await loadTileImage(url, signal)
+        options?.setCache?.(cacheId, blob)
         return createBmpProps(url, bmp)
       } catch {
         return null
@@ -332,12 +318,57 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
     })
   }
 
+  #cacheHandle: FileSystemDirectoryHandle | null = null
+
+  #getCacheHandle = async (pathId: string) => {
+    if (!this.#cacheHandle) {
+      const root = await navigator.storage.getDirectory()
+      this.#cacheHandle = await root.getDirectoryHandle(`cache_tile_${pathId}`, { create: true })
+    }
+    return this.#cacheHandle
+  }
+
+  #getCache = async (id: string) => {
+    if (!this.props.data) return null
+    try {
+      const { pathId } = this.props.data
+      const cacheHandle = await this.#getCacheHandle(pathId)
+      const fileHandle = await cacheHandle.getFileHandle(id).catch(() => null)
+      if (!fileHandle) {
+        return null
+      }
+      const file = await fileHandle.getFile()
+      const bmp = await createImageBitmap(file)
+      return bmp
+    } catch (error) {
+      console.error(`failed to get cache: ${id}.`, error)
+      return null
+    }
+  }
+
+  #setCache = async (id: string, blob: Blob) => {
+    if (!this.props.data) return
+    try {
+      const { pathId } = this.props.data
+      const cacheHandle = await this.#getCacheHandle(pathId)
+      const fileHandle = await cacheHandle.getFileHandle(id, { create: true })
+      const writer = await fileHandle.createWritable()
+      await writer.write(blob)
+      await writer.close()
+    } catch (error) {
+      console.error(`failed to set cache: ${id}.`, error)
+    }
+  }
+
   shouldUpdateState: CompositeLayer<TilesetLayerProps>['shouldUpdateState'] = ({ changeFlags }) => {
     return changeFlags.somethingChanged
   }
 
   renderLayers = (): (Layer | null)[] => {
-    const tileLayer = createTileLayer(this.props)
+    const tileLayer = createTileLayer(this.props, {
+      getCache: this.#getCache,
+      setCache: this.#setCache,
+    })
     const tileGridLayer = createTileGridLayer(this.props, this.context.viewport) ?? []
     const borderLayer = createBorderLayer(this.props)
     const originLayer = createOriginLayer(this.props)
