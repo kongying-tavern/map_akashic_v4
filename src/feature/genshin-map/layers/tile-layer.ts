@@ -11,6 +11,14 @@ import {
   TextLayer,
 } from 'deck.gl'
 import type { ResolvedTileset, TileSublayerProps } from '../types'
+import {
+  clampTileZoom,
+  createBmpProps,
+  createTileGridData,
+  getExtent,
+  getViewportBounds,
+  type TileGridData,
+} from '../utils/tile-layer'
 
 export interface TilesetLayerProps {
   /** 图层数据 */
@@ -21,18 +29,16 @@ export interface TilesetLayerProps {
   showOrigin?: boolean
   /** @debug 是否显示瓦片信息 */
   showTileInfo?: boolean
+  /** 限制缓存使用的内存大小，单位为 MB @default 512 */
+  maxCacheMemory?: number
 }
 
 const BASE_URL = import.meta.env.VITE_TILE_ASSETS_BASE
 const ZOOM_MAPPING = 13
-
-const createBmpProps = (url: string, bmp: ImageBitmap): TileSublayerProps => {
-  return {
-    byteLength: bmp.width * bmp.height * 4, // RGBA
-    image: bmp,
-    url,
-  }
-}
+const TILE_GRID_SIZE = 256
+const TILE_GRID_MIN_ZOOM = -3
+const TILE_GRID_MAX_ZOOM = 0
+const TILE_GRID_ZOOM_OFFSET = 0
 
 const loadTileImage = async (url: string, signal?: AbortSignal) => {
   const res = await fetch(url, {
@@ -43,59 +49,16 @@ const loadTileImage = async (url: string, signal?: AbortSignal) => {
   if (res.status !== 200) {
     throw new Error(`failed to load tile: ${url}, ${res.statusText}.`)
   }
-  const blob = await res.clone().blob()
+  const blob = await res.blob()
   // cache the blob, no need to wait
   const bmp = await createImageBitmap(blob)
   return { bmp, blob }
 }
 
-const getExtent = (data: ResolvedTileset) => {
-  const {
-    size: { 0: w, 1: h },
-    tilesOffset: { 0: ox, 1: oy },
-  } = data
-  return {
-    xmin: ox,
-    xmax: w + ox,
-    ymin: oy,
-    ymax: h + oy,
-  }
-}
-
-const TILE_GRID_SIZE = 256
-const TILE_GRID_MIN_ZOOM = -3
-const TILE_GRID_MAX_ZOOM = 0
-const TILE_GRID_ZOOM_OFFSET = 0
-
-type TileGridData = {
-  x: number
-  y: number
-  z: number
-  path: [number, number][]
-}
-
-const clampTileZoom = (zoom: number) => {
-  // Align with Deck.GL TileLayer (Tileset2D#getTileIndices):
-  // For non-geospatial viewport, z = ceil(viewport.zoom) + zoomOffset.
-  const z = Math.ceil(zoom) + TILE_GRID_ZOOM_OFFSET
-  return Math.min(TILE_GRID_MAX_ZOOM, Math.max(TILE_GRID_MIN_ZOOM, z))
-}
-
-const getViewportBounds = (viewport: Viewport) => {
-  const zoom = viewport.zoom ?? 0
-  const scale = 2 ** zoom
-  const halfWidth = (viewport.width ?? 0) / (2 * scale)
-  const halfHeight = (viewport.height ?? 0) / (2 * scale)
-  const targetX = viewport.center?.[0] ?? 0
-  const targetY = viewport.center?.[1] ?? 0
-  return [targetX - halfWidth, targetY - halfHeight, targetX + halfWidth, targetY + halfHeight]
-}
-
 const createTileLayer = (
   props: TilesetLayer['props'],
   options?: {
-    getCache?: (id: string) => Promise<ImageBitmap | null>
-    setCache?: (id: string, blob: Blob) => Promise<void>
+    getOrLoadTile?: (id: string, url: string) => Promise<ImageBitmap>
   },
 ) => {
   if (!props.data) {
@@ -108,7 +71,7 @@ const createTileLayer = (
     center: [cx, cy],
   } = props.data
   const { xmin, ymin, xmax, ymax } = getExtent(props.data)
-  return new TileLayer<TileSublayerProps | null>({
+  return new TileLayer<TileSublayerProps | { url: string; error: unknown } | null>({
     id: `tile(${id})`,
     tileSize: 256,
     coordinateOrigin: [cx, cy, 0],
@@ -116,6 +79,7 @@ const createTileLayer = (
     data: undefined,
     minZoom: -3, // 固定值，对应服务端存储底图的 level 10
     maxZoom: 0, // 固定值，对应服务端存储底图的 level 13
+    maxRequests: navigator.hardwareConcurrency,
     extent: [xmin, ymin, xmax, ymax],
     getTileData: async ({ index: { x, y, z }, signal }) => {
       if (signal?.aborted) {
@@ -124,28 +88,40 @@ const createTileLayer = (
       const url = `${BASE_URL}${pathId}/${z + ZOOM_MAPPING}/${x}_${y}.${extension}`
       const cacheId = `${pathId}_${z + ZOOM_MAPPING}_${x}_${y}.${extension}`
       try {
-        // 首先尝试缓存
-        const bmpCache = (await options?.getCache?.(cacheId)) ?? null
-        if (bmpCache) {
-          return createBmpProps(url, bmpCache)
+        const bmp = await options?.getOrLoadTile?.(cacheId, url)
+        if (!bmp) {
+          return null
         }
-        // 缓存 miss 时从网络加载
-        const { bmp, blob } = await loadTileImage(url, signal)
-        options?.setCache?.(cacheId, blob)
         return createBmpProps(url, bmp)
-      } catch {
-        return null
+      } catch (error) {
+        return {
+          url,
+          error,
+        }
       }
     },
     renderSubLayers: ({ data, tile }) => {
       if (!data) {
         return null
       }
-      const { url } = data
       const {
         0: { 0: xmin, 1: ymin },
         1: { 0: xmax, 1: ymax },
       } = tile.boundingBox
+      const { url } = data
+      if ('error' in data) {
+        return new TextLayer({
+          id: `tileError(${url})`,
+          data: [{ text: `Error: ${data.error}` }],
+          fontFamily: 'Consolas',
+          getTextAnchor: 'middle',
+          getAlignmentBaseline: 'top',
+          getColor: [255, 0, 0],
+          getSize: 12,
+          getPosition: () => [(xmin + xmax) / 2, (ymin + ymax) / 2, 0],
+          getText: () => 'ERROR',
+        })
+      }
       const bmpLayer = new BitmapLayer({
         id: `bitmap(${url})`,
         image: data.image,
@@ -167,44 +143,19 @@ const createTileGridLayer = (props: TilesetLayer['props'], viewport: Viewport) =
   } = props.data
   const { xmin, ymin, xmax, ymax } = getExtent(props.data)
   const [viewMinX, viewMinY, viewMaxX, viewMaxY] = getViewportBounds(viewport)
-  const z = clampTileZoom(viewport.zoom ?? 0)
+  const z = clampTileZoom(
+    viewport.zoom ?? 0,
+    TILE_GRID_MIN_ZOOM,
+    TILE_GRID_MAX_ZOOM,
+    TILE_GRID_ZOOM_OFFSET,
+  )
   const step = TILE_GRID_SIZE * 2 ** (TILE_GRID_MAX_ZOOM - z)
-
-  // coordinateOrigin 使用 center，因此可见边界需要转换到 tiles 本地坐标系
-  const localMinX = viewMinX
-  const localMinY = viewMinY
-  const localMaxX = viewMaxX
-  const localMaxY = viewMaxY
-
-  const xMin = Math.floor(localMinX / step)
-  const xMax = Math.ceil(localMaxX / step) - 1
-  const yMin = Math.floor(localMinY / step)
-  const yMax = Math.ceil(localMaxY / step) - 1
-
-  const tileGridData: TileGridData[] = []
-  for (let x = xMin; x <= xMax; x += 1) {
-    const left = x * step
-    const right = (x + 1) * step
-    for (let y = yMin; y <= yMax; y += 1) {
-      const bottom = (y + 1) * step
-      const top = y * step
-      if (right < xmin || left > xmax || top < ymin || bottom > ymax) {
-        continue
-      }
-      tileGridData.push({
-        x,
-        y,
-        z,
-        path: [
-          [left, top],
-          [left, bottom],
-          [right, bottom],
-          [right, top],
-          [left, top],
-        ],
-      })
-    }
-  }
+  const tileGridData = createTileGridData(
+    { xmin, ymin, xmax, ymax },
+    [viewMinX, viewMinY, viewMaxX, viewMaxY],
+    step,
+    z,
+  )
 
   const path = new PathLayer<TileGridData, PathStyleExtensionProps>({
     id: `tileGrid(${id})`,
@@ -309,6 +260,7 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
     showBounds: { type: 'boolean', value: false },
     showOrigin: { type: 'boolean', value: false },
     showTileInfo: { type: 'boolean', value: false },
+    maxCacheMemory: { type: 'number', value: 512 },
   }
 
   constructor(props: TilesetLayerProps) {
@@ -318,46 +270,134 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
     })
   }
 
-  #cacheHandle: FileSystemDirectoryHandle | null = null
+  #handleMap = new Map<string, FileSystemDirectoryHandle>()
+  #cacheGetPromiseMap = new Map<string, Promise<ImageBitmap | null>>()
+  #cacheSetPromiseMap = new Map<string, Promise<void>>()
+  #cacheInflightMap = new Map<string, Promise<ImageBitmap>>()
+  #cacheMemoryMap = new Map<string, { bmp: ImageBitmap; byteLength: number }>()
+  #cacheMemoryUsage = 0
 
   #getCacheHandle = async (pathId: string) => {
-    if (!this.#cacheHandle) {
-      const root = await navigator.storage.getDirectory()
-      this.#cacheHandle = await root.getDirectoryHandle(`cache_tile_${pathId}`, { create: true })
+    const cacheHandle = this.#handleMap.get(pathId)
+    if (cacheHandle) {
+      return cacheHandle
     }
-    return this.#cacheHandle
+    const root = await navigator.storage.getDirectory()
+    const handle = await root.getDirectoryHandle(`cache_tile_${pathId}`, { create: true })
+    this.#handleMap.set(pathId, handle)
+    return handle
+  }
+
+  #getMaxCacheMemoryBytes = () => {
+    const mb = this.props.maxCacheMemory ?? 512
+    if (!Number.isFinite(mb) || mb <= 0) {
+      return 0
+    }
+    return mb * 1024 * 1024
+  }
+
+  #setMemoryCache = (id: string, bmp: ImageBitmap, byteLength: number) => {
+    const maxBytes = this.#getMaxCacheMemoryBytes()
+    if (maxBytes <= 0 || byteLength > maxBytes) {
+      return
+    }
+    const existed = this.#cacheMemoryMap.get(id)
+    if (existed) {
+      this.#cacheMemoryMap.delete(id)
+      this.#cacheMemoryUsage -= existed.byteLength
+    }
+    this.#cacheMemoryMap.set(id, { bmp, byteLength })
+    this.#cacheMemoryUsage += byteLength
+    while (this.#cacheMemoryUsage > maxBytes && this.#cacheMemoryMap.size > 0) {
+      const oldestId = this.#cacheMemoryMap.keys().next().value as string | undefined
+      if (!oldestId) {
+        break
+      }
+      const oldestCache = this.#cacheMemoryMap.get(oldestId)
+      if (!oldestCache) {
+        continue
+      }
+      this.#cacheMemoryMap.delete(oldestId)
+      this.#cacheMemoryUsage -= oldestCache.byteLength
+    }
   }
 
   #getCache = async (id: string) => {
     if (!this.props.data) return null
-    try {
-      const { pathId } = this.props.data
-      const cacheHandle = await this.#getCacheHandle(pathId)
-      const fileHandle = await cacheHandle.getFileHandle(id).catch(() => null)
-      if (!fileHandle) {
+    const memoryCache = this.#cacheMemoryMap.get(id)
+    if (memoryCache) {
+      // 命中内存缓存时刷新其最近使用顺序（LRU）
+      this.#cacheMemoryMap.delete(id)
+      this.#cacheMemoryMap.set(id, memoryCache)
+      return memoryCache.bmp
+    }
+    const cachePromise = this.#cacheGetPromiseMap.get(id)
+    if (cachePromise) return cachePromise
+    const { pathId } = this.props.data
+    const promise = (async () => {
+      try {
+        const cacheHandle = await this.#getCacheHandle(pathId)
+        const fileHandle = await cacheHandle.getFileHandle(id).catch(() => null)
+        if (!fileHandle) {
+          return null
+        }
+        const file = await fileHandle.getFile()
+        const bmp = await createImageBitmap(file)
+        this.#setMemoryCache(id, bmp, bmp.width * bmp.height * 4)
+        return bmp
+      } catch (error) {
+        console.error(`failed to get cache: ${id}.`, error)
         return null
+      } finally {
+        this.#cacheGetPromiseMap.delete(id)
       }
-      const file = await fileHandle.getFile()
-      const bmp = await createImageBitmap(file)
+    })()
+    this.#cacheGetPromiseMap.set(id, promise)
+    return promise
+  }
+
+  #getOrLoadTile = async (id: string, url: string) => {
+    const cached = await this.#getCache(id)
+    if (cached) {
+      return cached
+    }
+    const inflight = this.#cacheInflightMap.get(id)
+    if (inflight) {
+      return inflight
+    }
+    const promise = (async () => {
+      const { bmp, blob } = await loadTileImage(url)
+      this.#setMemoryCache(id, bmp, bmp.width * bmp.height * 4)
+      this.#setCache(id, blob)
       return bmp
-    } catch (error) {
-      console.error(`failed to get cache: ${id}.`, error)
-      return null
+    })()
+    this.#cacheInflightMap.set(id, promise)
+    try {
+      return await promise
+    } finally {
+      this.#cacheInflightMap.delete(id)
     }
   }
 
   #setCache = async (id: string, blob: Blob) => {
     if (!this.props.data) return
-    try {
-      const { pathId } = this.props.data
-      const cacheHandle = await this.#getCacheHandle(pathId)
-      const fileHandle = await cacheHandle.getFileHandle(id, { create: true })
-      const writer = await fileHandle.createWritable()
-      await writer.write(blob)
-      await writer.close()
-    } catch (error) {
-      console.error(`failed to set cache: ${id}.`, error)
-    }
+    const cachePromise = this.#cacheSetPromiseMap.get(id)
+    if (cachePromise) return cachePromise
+    const { pathId } = this.props.data
+    const promise = (async () => {
+      try {
+        const cacheHandle = await this.#getCacheHandle(pathId)
+        const fileHandle = await cacheHandle.getFileHandle(id, { create: true })
+        const writer = await fileHandle.createWritable()
+        await writer.write(blob)
+        await writer.close()
+      } catch (error) {
+        console.error(`failed to set cache: ${id}.`, error)
+      } finally {
+        this.#cacheSetPromiseMap.delete(id)
+      }
+    })()
+    this.#cacheSetPromiseMap.set(id, promise)
   }
 
   shouldUpdateState: CompositeLayer<TilesetLayerProps>['shouldUpdateState'] = ({ changeFlags }) => {
@@ -366,13 +406,25 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
 
   renderLayers = (): (Layer | null)[] => {
     const tileLayer = createTileLayer(this.props, {
-      getCache: this.#getCache,
-      setCache: this.#setCache,
+      getOrLoadTile: this.#getOrLoadTile,
     })
     const tileGridLayer = createTileGridLayer(this.props, this.context.viewport) ?? []
     const borderLayer = createBorderLayer(this.props)
     const originLayer = createOriginLayer(this.props)
     const tileInfoLayer = createTileInfoLayer(this.props)
     return [tileLayer, ...tileGridLayer, borderLayer, originLayer, tileInfoLayer]
+  }
+
+  finalizeState: CompositeLayer<TilesetLayerProps>['finalizeState'] = (context) => {
+    super.finalizeState?.(context)
+    this.#handleMap.clear()
+    this.#cacheGetPromiseMap.clear()
+    this.#cacheSetPromiseMap.clear()
+    this.#cacheInflightMap.clear()
+    for (const { bmp } of this.#cacheMemoryMap.values()) {
+      bmp.close()
+    }
+    this.#cacheMemoryMap.clear()
+    this.#cacheMemoryUsage = 0
   }
 }
