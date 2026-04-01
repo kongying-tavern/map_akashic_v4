@@ -1,11 +1,19 @@
 import type { Viewport } from '@deck.gl/core'
-import type { ResolvedTileset, TileSublayerProps } from '../types'
+import type { ChildTileSlot, ResolvedTileset, TileExtent, TileGridData, TileSublayerProps } from '../types'
 
-export type TileGridData = {
-  x: number
-  y: number
-  z: number
-  path: [number, number][]
+export const loadTileImage = async (url: string, signal?: AbortSignal) => {
+  const res = await fetch(url, {
+    mode: 'cors',
+    method: 'GET',
+    signal,
+  })
+  if (res.status !== 200) {
+    throw new Error(`failed to load tile: ${url}, ${res.statusText}.`)
+  }
+  const blob = await res.blob()
+  // cache the blob, no need to wait
+  const bmp = await createImageBitmap(blob)
+  return { bmp, blob }
 }
 
 export const createBmpProps = (url: string, bmp: ImageBitmap): TileSublayerProps => {
@@ -26,7 +34,7 @@ export const getExtent = (data: ResolvedTileset) => {
     xmax: w + ox,
     ymin: oy,
     ymax: h + oy,
-  }
+  } as TileExtent
 }
 
 export const clampTileZoom = (
@@ -104,4 +112,140 @@ export const createTileGridData = ({
   }
 
   return tileGridData
+}
+
+export const buildTileAddress = ({
+  baseUrl,
+  pathId,
+  extension,
+  zoomMapping,
+  z,
+  x,
+  y,
+}: {
+  baseUrl: string
+  pathId: string
+  extension: string
+  zoomMapping: number
+  z: number
+  x: number
+  y: number
+}) => {
+  const level = z + zoomMapping
+  const name = `${x}_${y}.${extension}`
+  return {
+    url: `${baseUrl}${pathId}/${level}/${name}`,
+    cacheId: `${pathId}_${level}_${name}`,
+  }
+}
+
+export const computePreRenderMinZoom = ({
+  tilesAtMinZoom,
+  extent,
+  minZoom,
+  maxZoom,
+  tileSize,
+}: {
+  tilesAtMinZoom: TileGridData[]
+  extent: TileExtent
+  minZoom: number
+  maxZoom: number
+  tileSize: number
+}) => {
+  let currentTiles = tilesAtMinZoom
+  let currentZoom = minZoom
+  while (currentTiles.length > 1) {
+    const nextZoom = currentZoom - 1
+    const step = tileSize * 2 ** (maxZoom - nextZoom)
+    const nextTiles = createTileGridData({
+      extent,
+      step,
+      z: nextZoom,
+    })
+    if (nextTiles.length === currentTiles.length) {
+      break
+    }
+    currentZoom = nextZoom
+    currentTiles = nextTiles
+    if (currentTiles.length <= 1) {
+      break
+    }
+  }
+  return currentZoom
+}
+
+export const computeTileCanvasLayout = ({
+  tiles,
+  tileSize,
+}: {
+  tiles: Pick<TileGridData, 'x' | 'y'>[]
+  tileSize: number
+}) => {
+  const minTileX = Math.min(...tiles.map((tile) => tile.x))
+  const minTileY = Math.min(...tiles.map((tile) => tile.y))
+  const maxTileX = Math.max(...tiles.map((tile) => tile.x))
+  const maxTileY = Math.max(...tiles.map((tile) => tile.y))
+  const tileCols = maxTileX - minTileX + 1
+  const tileRows = maxTileY - minTileY + 1
+  return {
+    minTileX,
+    minTileY,
+    maxTileX,
+    maxTileY,
+    tileCols,
+    tileRows,
+    canvasWidth: tileCols * tileSize,
+    canvasHeight: tileRows * tileSize,
+  }
+}
+
+export const computeTileDrawOffset = ({
+  x,
+  y,
+  minTileX,
+  minTileY,
+  tileSize,
+}: {
+  x: number
+  y: number
+  minTileX: number
+  minTileY: number
+  tileSize: number
+}) => {
+  return {
+    dx: (x - minTileX) * tileSize,
+    dy: (y - minTileY) * tileSize,
+  }
+}
+
+export const buildTileKey = ({ x, y }: { x: number; y: number }) => {
+  return `${x}_${y}`
+}
+
+export const computeChildTileSlots = ({
+  x,
+  y,
+  tileSize,
+}: {
+  x: number
+  y: number
+  tileSize: number
+}) => {
+  const half = tileSize / 2
+  const slots: ChildTileSlot[] = []
+  for (let childXOffset = 0; childXOffset <= 1; childXOffset += 1) {
+    for (let childYOffset = 0; childYOffset <= 1; childYOffset += 1) {
+      const childX = x * 2 + childXOffset
+      const childY = y * 2 + childYOffset
+      slots.push({
+        childX,
+        childY,
+        childKey: buildTileKey({ x: childX, y: childY }),
+        dx: childXOffset * half,
+        dy: childYOffset * half,
+        dSize: half,
+      })
+    }
+  }
+  return slots
 }

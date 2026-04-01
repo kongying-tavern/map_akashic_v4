@@ -4,3 +4,11 @@ export type {
   TileLayerFactoryOptions,
   ResolvedTileset,
 } from './tileset'
+export type {
+  TilesetLayerProps,
+  TilesetLayerRenderProps,
+  TileLayerFactoryConfig,
+  TileGridData,
+  TileExtent,
+  ChildTileSlot,
+} from './tile-layer'
