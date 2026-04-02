@@ -8,5 +8,11 @@
     >
       map
     </router-link>
+    <router-link
+      to="/development"
+      class="block px-4 py-2 text-blue-700 hover:bg-blue-100 active:bg-blue-300 m-2 rounded"
+    >
+      development
+    </router-link>
   </div>
 </template>
