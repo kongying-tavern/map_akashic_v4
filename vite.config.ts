@@ -34,16 +34,18 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_BASE_PROXY,
           changeOrigin: true,
           rewrite: (path) => {
-            console.log('[target]', path.replace(env.VITE_API_BASE, ''))
-            return path.replace(env.VITE_API_BASE, '')
+            const rewritten = path.replace(env.VITE_API_BASE, '')
+            console.log('[proxy]', `${path} -> ${env.VITE_API_BASE_PROXY}${rewritten}`)
+            return rewritten
           },
         },
         [env.VITE_APP_CONFIG_URL]: {
           target: env.VITE_APP_CONFIG_URL_PROXY,
           changeOrigin: true,
           rewrite: (path) => {
-            console.log('[path]', path)
-            return path.replace(env.VITE_APP_CONFIG_URL, '')
+            const rewritten = path.replace(env.VITE_APP_CONFIG_URL, '')
+            console.log('[proxy]', `${path} -> ${env.VITE_APP_CONFIG_URL_PROXY}${rewritten}`)
+            return rewritten
           },
         },
       },

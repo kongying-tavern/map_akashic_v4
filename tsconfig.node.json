@@ -20,15 +20,6 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": [
-    "**/envs/*",
-    "**/configs/*",
-    "**/types/*",
-    "**/config/*",
-    "package.json",
-    "vite.config.ts",
-    "alova.config.ts",
-    "oxlint.config.ts"
-  ],
+  "include": ["envs", "**.config.ts", "**/configs/*", "**/types/*", "**/config/*", "package.json"],
   "exclude": ["node_modules", "src"]
 }

@@ -2,23 +2,30 @@ import { createAlova } from 'alova'
 import { createClientTokenAuthentication } from 'alova/client'
 import fetchAdapter from 'alova/fetch'
 import VueHook from 'alova/vue'
-import { useUserStore } from '@/stores'
 import { createApis, mountApis, withConfigType } from './createApis'
+// import { useUserStore } from '@/stores'
 
 const { onAuthRequired } = createClientTokenAuthentication({
-  assignToken: (req) => {
-    const { token } = useUserStore()
-    if (token) req.config.headers.Authorization = token
-  },
+  assignToken: () => {},
 })
 
 export const alovaInstance = createAlova({
   baseURL: import.meta.env.VITE_API_BASE,
-  requestAdapter: fetchAdapter(),
-  beforeRequest: onAuthRequired(),
   statesHook: VueHook,
+  requestAdapter: fetchAdapter(),
+  beforeRequest: onAuthRequired((method) => {
+    console.log('[headers]', method.config)
+  }),
   responded: (res) => {
-    return res.json()
+    const clone = res.clone()
+    if (!clone.ok) {
+      throw new Error(clone.statusText)
+    }
+    const contentType = clone.headers.get('content-type')
+    if (contentType?.startsWith('application/json')) {
+      return clone.json()
+    }
+    return clone
   },
 })
 
@@ -40,5 +47,5 @@ export type {
   ConfigNameCard,
   ConfigPlugin,
   ConfigTileLayer,
-  DadianConfig,
+  MapConfig,
 } from './manual/config'

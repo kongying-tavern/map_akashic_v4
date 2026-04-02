@@ -1,12 +1,17 @@
 import { createAlova } from 'alova'
 import fetchAdapter from 'alova/fetch'
 import VueHook from 'alova/vue'
+import { webConfigSchema } from '@/shared/schemas/web-config'
 
 export const configInstance = createAlova({
   baseURL: import.meta.env.VITE_APP_CONFIG_URL,
-  requestAdapter: fetchAdapter(),
   statesHook: VueHook,
+  requestAdapter: fetchAdapter(),
+  cacheFor: null,
   responded: (res) => {
+    if (res.status !== 200) throw new Error(res.statusText)
+    if (!res.headers.get('content-type')?.includes('application/json'))
+      throw new Error('Invalid content type')
     return res.json()
   },
 })
@@ -181,7 +186,7 @@ export interface ConfigPlugin {
   }
 }
 
-export interface DadianConfig {
+export interface MapConfig {
   /**
    * 应用配置
    */
@@ -232,5 +237,11 @@ export interface DadianConfig {
   pluginsNeigui?: Record<string, ConfigPlugin>
 }
 
-export const getDadianJson = () =>
-  configInstance.Get<DadianConfig | null, DadianConfig | null>('/dadian.json')
+export const getDadianJson = () => {
+  return configInstance.Get<MapConfig | null, MapConfig | null>('/web-map.json', {
+    transform: (res) => {
+      webConfigSchema.parse(res)
+      return res
+    },
+  })
+}

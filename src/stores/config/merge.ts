@@ -1,4 +1,4 @@
-import type { ConfigTileLayer, DadianConfig } from '@/api'
+import type { ConfigTileLayer, MapConfig } from '@/api'
 import type { ResolvedTileset } from '@/feature/genshin-map/types'
 
 // 辅助函数：判断是否为「纯对象」（排除数组、null、特殊对象）
@@ -37,6 +37,7 @@ const deepMerge = (a: unknown, b: unknown): unknown => {
 }
 
 const mergeConfigs = (configsList: ConfigTileLayer[]) => {
+  console.log('configsList', configsList)
   const tree: Record<string, ConfigTileLayer> = {}
   const { length } = configsList
   for (let i = 0; i < length; i++) {
@@ -76,7 +77,8 @@ const TILE_ID_REG = /^[AC]:[A-Z]+/
 /**
  * 主函数：基于索引树处理 tiles/tilesNeigui 继承
  */
-export const parseTilesConfigs = (dadianConfig: DadianConfig) => {
+export const parseTilesConfigs = (dadianConfig: MapConfig) => {
+  console.log('dadianConfig', dadianConfig)
   const tree = mergeConfigs([dadianConfig.tiles ?? {}, dadianConfig.tilesNeigui ?? {}])
   return decodeExtend(tree).filter((config) => {
     const { id } = config

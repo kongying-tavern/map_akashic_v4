@@ -20,21 +20,19 @@ interface ImportMetaEnv {
 
   /** 应用标题 */
   readonly VITE_APP_TITLE: string
-  /** 基础服务端点 */
-  readonly VITE_API_BASE: string
   /** 订阅配置地址 */
   readonly VITE_APP_CONFIG_URL: string
+  /** 基础服务端点 */
+  readonly VITE_API_BASE: string
   /** 底图资源地址 */
   readonly VITE_TILE_ASSETS_BASE: string
+  /** 接口 Basic 验证 */
+  readonly VITE_API_BASE_AUTH: string
 
-  /** 基础配置端点代理 */
-  readonly VITE_APP_CONFIG_URL_PROXY: string
-  /**  基础服务端点代理 */
+  /** @dev 基础服务端点代理 */
   readonly VITE_API_BASE_PROXY: string
-  /** 基础验证用户名 */
-  readonly VITE_API_AUTH_USERNAME: string
-  /** 基础验证口令 */
-  readonly VITE_API_AUTH_PASSWORD: string
+  /** @dev 订阅配置地址代理 */
+  readonly VITE_APP_CONFIG_URL_PROXY: string
 }
 
 interface ImportMeta {

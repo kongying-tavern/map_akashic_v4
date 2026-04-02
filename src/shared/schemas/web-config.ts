@@ -185,7 +185,7 @@ const ConfigPluginSchema = z
 /**
  * 主配置 Schema（对应 DadianConfig）
  */
-export const DadianConfigSchema = z
+export const webConfigSchema = z
   .object({
     application: z
       .object({
