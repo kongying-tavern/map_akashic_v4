@@ -3,8 +3,6 @@ export type {
   TilesetMeta,
   TileLayerFactoryOptions,
   ResolvedTileset,
-} from './tileset'
-export type {
   TilesetLayerProps,
   TilesetLayerRenderProps,
   TileLayerFactoryConfig,

@@ -12,8 +12,8 @@ const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef')
 const deckRef = shallowRef<Deck<OrthographicView>>()
 
 const injectViewState = shallowRef<OrthographicViewState>({
-  // minZoom: -3,
-  // maxZoom: 0,
+  minZoom: -3,
+  maxZoom: 0,
 })
 
 /** 仅用于 UI 反馈，不能通过修改此值来实现视图变化 */
@@ -51,13 +51,19 @@ onMounted(() => {
     views: new OrthographicView({
       controller: OrbitController,
     }),
+    getCursor: () => 'default',
     controller: {
       dragMode: 'pan',
       dragRotate: false,
+      inertia: 500,
+      scrollZoom: {
+        smooth: true,
+        speed: 0.01,
+      },
     },
     initialViewState: initialViewState,
     layers: [tileLayer],
-    onViewStateChange: ({ viewState: newState }) => {
+    onViewStateChange: ({ viewState: newState, ...rest }) => {
       readonlyViewState.value = newState
       return {
         ...injectViewState.value,

@@ -6,6 +6,7 @@ const configStore = useConfigStore()
 
 <template>
   <div class="relative w-100dvw h-100dvh overflow-auto">
+    <div v-if="!configStore.tiles.size">Empty tiles</div>
     <router-link
       v-for="[id] in configStore.tiles"
       :key="id"

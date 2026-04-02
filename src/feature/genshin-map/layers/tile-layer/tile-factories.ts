@@ -1,12 +1,19 @@
 import type { Viewport } from '@deck.gl/core'
 import { PathStyleExtension, PathStyleExtensionProps } from '@deck.gl/extensions'
-import { BitmapLayer, COORDINATE_SYSTEM, PathLayer, PointCloudLayer, TextLayer, TileLayer } from 'deck.gl'
+import {
+  BitmapLayer,
+  COORDINATE_SYSTEM,
+  PathLayer,
+  PointCloudLayer,
+  TextLayer,
+  TileLayer,
+} from 'deck.gl'
 import type {
   TileGridData,
   TileLayerFactoryConfig,
   TileSublayerProps,
   TilesetLayerRenderProps,
-} from '../types'
+} from '../../types/tile-layer'
 import {
   buildTileAddress,
   clampTileZoom,
@@ -14,7 +21,7 @@ import {
   createTileGridData,
   getExtent,
   getViewportBounds,
-} from '../utils/tile-layer'
+} from './tile-utils'
 
 export const createTileLayer = (
   props: TilesetLayerRenderProps,
@@ -110,9 +117,6 @@ export const createTileGridLayer = (
     TileLayerFactoryConfig,
     'tileGridMinZoom' | 'tileGridMaxZoom' | 'tileGridZoomOffset' | 'tileGridSize' | 'zoomMapping'
   >,
-  options?: {
-    minZoom?: number
-  },
 ) => {
   if (!props.data) {
     return null
@@ -125,7 +129,7 @@ export const createTileGridLayer = (
   const [viewMinX, viewMinY, viewMaxX, viewMaxY] = getViewportBounds(viewport)
   const z = clampTileZoom(
     viewport.zoom ?? 0,
-    options?.minZoom ?? config.tileGridMinZoom,
+    config.tileGridMinZoom,
     config.tileGridMaxZoom,
     config.tileGridZoomOffset,
   )

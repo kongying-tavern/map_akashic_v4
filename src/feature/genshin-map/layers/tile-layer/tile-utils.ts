@@ -1,5 +1,11 @@
 import type { Viewport } from '@deck.gl/core'
-import type { ChildTileSlot, ResolvedTileset, TileExtent, TileGridData, TileSublayerProps } from '../types'
+import type {
+  ChildTileSlot,
+  ResolvedTileset,
+  TileExtent,
+  TileGridData,
+  TileSublayerProps,
+} from '../../types/tile-layer'
 
 export const loadTileImage = async (url: string, signal?: AbortSignal) => {
   const res = await fetch(url, {
