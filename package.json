@@ -7,7 +7,7 @@
   "author": "Kongying Tavern",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev --host",
     "build": "vite build",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
