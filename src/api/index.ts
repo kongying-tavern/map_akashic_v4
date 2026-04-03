@@ -37,6 +37,7 @@ mountApis(Apis)
 
 export default Apis
 export * as config from './manual/config'
+export * as auth from './manual/auth'
 
 export type {
   ConfigAvatar,

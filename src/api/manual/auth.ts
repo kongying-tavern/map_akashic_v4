@@ -33,3 +33,32 @@ export const authInstance = createAlova({
     return res
   },
 })
+
+interface LoginForm {
+  username: string
+  password: string
+}
+
+interface LoginResult {
+  access_token: string
+  token_type: string
+  expires_in: number
+  scope: string
+  jti: string
+}
+
+export const login = async (data: LoginForm) => {
+  return authInstance.Post<LoginResult>(
+    '/oauth/token',
+    {
+      ...data,
+      grant_type: 'password',
+    },
+    {
+      params: {
+        scope: 'all',
+        grant_type: 'client_credentials',
+      },
+    },
+  )
+}
