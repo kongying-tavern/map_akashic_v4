@@ -2,8 +2,6 @@
 import { computed } from 'vue'
 import { getSquircleGeometry, getSquirclePath } from './utils/squircle-geometry'
 
-defineOptions({ inheritAttrs: false })
-
 interface SquircleProps {
   /** 矩形宽 */
   w?: number
@@ -27,13 +25,13 @@ interface SquircleProps {
 
 const props = withDefaults(defineProps<SquircleProps>(), {
   w: 160,
-  h: 220,
+  h: 160,
   r: 60,
   n: 5,
-  samples: 16,
-  fill: '#5E7CE2',
-  stroke: '#000',
-  strokeWidth: 1.5,
+  samples: 12,
+  fill: 'gray',
+  stroke: 'transparent',
+  strokeWidth: 0,
   precision: 2,
 })
 
@@ -55,28 +53,19 @@ const path = computed(() => {
 </script>
 
 <template>
-  <div
-    class="relative"
-    :style="{ width: `${squircleGeometry.w}px`, height: `${squircleGeometry.h}px` }"
+  <svg
+    :viewBox="`0 0 ${squircleGeometry.w} ${squircleGeometry.h}`"
+    xmlns="http://www.w3.org/2000/svg"
+    class="absolute inset-0 pointer-events-none"
+    aria-hidden="true"
   >
-    <svg
-      :width="squircleGeometry.w"
-      :height="squircleGeometry.h"
-      :viewBox="`0 0 ${squircleGeometry.w} ${squircleGeometry.h}`"
-      xmlns="http://www.w3.org/2000/svg"
-      class="absolute inset-0 z-[0] pointer-events-none"
-    >
-      <path
-        v-if="path"
-        :d="path"
-        :fill="fill"
-        :stroke="stroke"
-        :stroke-width="squircleGeometry.strokeWidth"
-        stroke-linejoin="round"
-      />
-    </svg>
-    <div v-if="$slots.default" v-bind="$attrs" class="absolute inset-0 z-[1]">
-      <slot />
-    </div>
-  </div>
+    <path
+      v-if="path"
+      :d="path"
+      :fill="fill"
+      :stroke="stroke"
+      :stroke-width="squircleGeometry.strokeWidth"
+      stroke-linejoin="round"
+    />
+  </svg>
 </template>
