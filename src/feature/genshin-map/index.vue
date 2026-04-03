@@ -31,9 +31,9 @@ onMounted(() => {
 
   const tileLayer = new TilesetLayer({
     data: config,
-    showBounds: true,
-    showOrigin: true,
-    showTileInfo: true,
+    // showBounds: true,
+    // showOrigin: true,
+    // showTileInfo: true,
   })
 
   const [initX, initY]: [number, number] = config.settings?.center ?? [0, 0]
@@ -56,10 +56,10 @@ onMounted(() => {
       dragMode: 'pan',
       dragRotate: false,
       inertia: 500,
-      scrollZoom: {
-        smooth: true,
-        speed: 0.01,
-      },
+      // scrollZoom: {
+      //   smooth: true,
+      //   speed: 0.01,
+      // },
     },
     initialViewState: initialViewState,
     layers: [tileLayer],
@@ -85,13 +85,5 @@ onUnmounted(() => {
 <template>
   <div class="relative w-full h-full overflow-hidden relative bg-black">
     <canvas ref="canvasRef" />
-
-    <div class="absolute left-4 top-4 text-sm text-white pointer-events-none">
-      <pre>{{ JSON.stringify($props.config, null, 2) }}</pre>
-    </div>
-
-    <div class="absolute right-4 top-4 text-sm text-white pointer-events-none">
-      <pre>{{ JSON.stringify(readonlyViewState, null, 2) }}</pre>
-    </div>
   </div>
 </template>

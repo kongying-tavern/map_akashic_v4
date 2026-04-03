@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAsyncState } from '@vueuse/core'
 import { ConfigProvider } from '@/core'
+import MainNavigator from '@/feature/main-navigator/index.vue'
 import { useConfigStore } from '@/stores'
 
 const configStore = useConfigStore()
@@ -23,10 +24,13 @@ const {
 
 <template>
   <ConfigProvider>
-    <div v-if="isLoading">Loading Config ...</div>
-    <div v-else-if="!data">
-      {{ error }}
+    <div class="page-development h-full bg-#ede4d5 relative" style="--s: #fff">
+      <div v-if="isLoading">Loading Config ...</div>
+      <div v-else-if="!data">
+        {{ error }}
+      </div>
+      <router-view v-else />
+      <MainNavigator></MainNavigator>
     </div>
-    <router-view v-else />
   </ConfigProvider>
 </template>

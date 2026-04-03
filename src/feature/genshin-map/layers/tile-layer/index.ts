@@ -63,7 +63,8 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
   }
 
   shouldUpdateState: CompositeLayer<TilesetLayerProps>['shouldUpdateState'] = ({ changeFlags }) => {
-    return changeFlags.somethingChanged
+    const debug = this.props.showBounds || this.props.showOrigin || this.props.showTileInfo
+    return debug ? changeFlags.somethingChanged : changeFlags.propsOrDataChanged
   }
 
   renderLayers = (): (Layer | null)[] => {
@@ -72,11 +73,12 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
       minZoom: TILE_GRID_MIN_ZOOM,
       revision: this.#tileLayerRevision,
     })
-    const tileGridLayer =
-      createTileGridLayer(this.props, this.context.viewport, TILE_LAYER_FACTORY_CONFIG) ?? []
-    const borderLayer = createBorderLayer(this.props)
-    const originLayer = createOriginLayer(this.props)
-    const tileInfoLayer = createTileInfoLayer(this.props)
+    const tileGridLayer = this.props.showTileInfo
+      ? (createTileGridLayer(this.props, this.context.viewport, TILE_LAYER_FACTORY_CONFIG) ?? [])
+      : []
+    const borderLayer = this.props.showBounds ? createBorderLayer(this.props) : null
+    const originLayer = this.props.showOrigin ? createOriginLayer(this.props) : null
+    const tileInfoLayer = this.props.showTileInfo ? createTileInfoLayer(this.props) : null
     return [tileLayer, ...tileGridLayer, borderLayer, originLayer, tileInfoLayer]
   }
 
