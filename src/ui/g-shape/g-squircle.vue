@@ -35,6 +35,12 @@ const props = withDefaults(defineProps<SquircleProps>(), {
   precision: 2,
 })
 
+const slots = defineSlots<{
+  default?: () => unknown
+}>()
+
+const id = crypto.getRandomValues(new Uint8Array(16)).toString()
+
 const squircleGeometry = computed(() => {
   return getSquircleGeometry({
     w: props.w,
@@ -53,7 +59,34 @@ const path = computed(() => {
 </script>
 
 <template>
+  <div v-if="slots.default" :style="{ clipPath: `url(#${id}-clip)` }">
+    <svg
+      :id="id"
+      :viewBox="`0 0 ${squircleGeometry.w} ${squircleGeometry.h}`"
+      xmlns="http://www.w3.org/2000/svg"
+      class="absolute inset-0 pointer-events-none"
+      aria-hidden="true"
+    >
+      <defs>
+        <path
+          :id="`${id}-path`"
+          :d="path"
+          :fill="fill"
+          :stroke="stroke"
+          :stroke-width="squircleGeometry.strokeWidth"
+          stroke-linejoin="round"
+        />
+      </defs>
+      <clipPath :id="`${id}-clip`">
+        <use :href="`#${id}-path`" />
+      </clipPath>
+      <use :href="`#${id}-path`" />
+    </svg>
+    <slot />
+  </div>
+
   <svg
+    v-else
     :viewBox="`0 0 ${squircleGeometry.w} ${squircleGeometry.h}`"
     xmlns="http://www.w3.org/2000/svg"
     class="absolute inset-0 pointer-events-none"
