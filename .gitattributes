@@ -1,6 +1,7 @@
 * auto eol=lf
 
 # 覆盖行终止符
+*.svg text eol=lf
 *.vue text eol=lf
 *.ts text eol=lf
 *.js text eol=lf
