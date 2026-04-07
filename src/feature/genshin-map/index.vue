@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Deck, OrbitController, OrthographicView, OrthographicViewState } from 'deck.gl'
+import { SiderToolbar } from './components'
+import ZoomController from './controllers/zoom-controller.vue'
 import { TilesetLayer } from './layers/tile-layer'
+import { useViewStore } from './stores/view-state'
 import { ResolvedTileset } from './types'
 
 const props = defineProps<{
@@ -9,81 +12,90 @@ const props = defineProps<{
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef')
 
-const deckRef = shallowRef<Deck<OrthographicView>>()
+const cleanups = shallowRef<(() => void)[]>([])
 
-const injectViewState = shallowRef<OrthographicViewState>({
-  minZoom: -3,
-  maxZoom: 0,
-})
-
-/** 仅用于 UI 反馈，不能通过修改此值来实现视图变化 */
-const readonlyViewState = shallowRef<OrthographicViewState>({
-  ...injectViewState.value,
-  target: [0, 0],
-  zoom: 0,
-})
+const { state: viewState, onViewStateChange, syncViewStateChange } = useViewStore()
 
 onMounted(() => {
   const canvas = canvasRef.value
   if (!canvas) return
 
   const { config } = props
-
-  const tileLayer = new TilesetLayer({
-    data: config,
-    // showBounds: true,
-    // showOrigin: true,
-    // showTileInfo: true,
-  })
-
   const [initX, initY]: [number, number] = config.settings?.center ?? [0, 0]
   const initZoom = config.settings?.zoom ?? 0
 
+  // setup view state
   const initialViewState: OrthographicViewState = {
-    ...injectViewState.value,
+    ...viewState,
     target: [initX + config.center[0], initY + config.center[1]],
     zoom: initZoom,
   }
-  readonlyViewState.value = initialViewState
+  syncViewStateChange(initialViewState)
 
+  // setup tile layer
+  const tileLayer = new TilesetLayer({
+    data: config,
+    showBounds: true,
+    showOrigin: true,
+    showTileInfo: true,
+  })
+
+  // setup deck
   const deck = new Deck<OrthographicView>({
     canvas,
     views: new OrthographicView({
       controller: OrbitController,
     }),
-    getCursor: () => 'default',
     controller: {
       dragMode: 'pan',
       dragRotate: false,
       inertia: 500,
-      // scrollZoom: {
-      //   smooth: true,
-      //   speed: 0.01,
-      // },
+      scrollZoom: false,
+      touchRotate: false,
     },
     initialViewState: initialViewState,
     layers: [tileLayer],
-    onViewStateChange: ({ viewState: newState, ...rest }) => {
-      readonlyViewState.value = newState
+    getCursor: ({ isDragging, isHovering }) => {
+      return isDragging ? 'grabbing' : isHovering ? 'pointer' : 'default'
+    },
+    onViewStateChange: ({ viewState: newViewState }) => {
+      syncViewStateChange(newViewState)
       return {
-        ...injectViewState.value,
-        ...newState,
+        ...newViewState,
+        minZoom: initialViewState.minZoom,
+        maxZoom: initialViewState.maxZoom,
       }
     },
   })
 
-  deckRef.value = deck
+  // setup view state change listener
+  const { off: viewStateChangeOff } = onViewStateChange((newViewState) => {
+    deck.setProps({
+      initialViewState: newViewState,
+    })
+  })
+
+  // setup cleanup
+  cleanups.value.push(() => {
+    viewStateChangeOff()
+    deck.finalize()
+  })
 })
 
 onUnmounted(() => {
-  const deck = deckRef.value
-  if (!deck) return
-  deck.finalize()
+  console.log('cleanup')
+  cleanups.value.forEach((cleanup) => cleanup())
+  cleanups.value = []
 })
 </script>
 
 <template>
-  <div class="relative w-full h-full overflow-hidden relative bg-black">
+  <div class="w-full h-full overflow-hidden relative bg-black">
     <canvas ref="canvasRef" />
+
+    <div class="absolute inset-0 pointer-events-none">
+      <ZoomController />
+      <SiderToolbar />
+    </div>
   </div>
 </template>

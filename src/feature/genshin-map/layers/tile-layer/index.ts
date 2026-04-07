@@ -44,7 +44,6 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
     this.#tileCache = new TileCache({
       getMaxCacheMemoryMB: () => this.props.maxCacheMemory ?? 512,
     })
-    Reflect.set(globalThis, 'tilesetLayer', this)
   }
 
   #tileCache: TileCache

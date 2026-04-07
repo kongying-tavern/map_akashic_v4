@@ -30,7 +30,7 @@ const {
         {{ error }}
       </div>
       <router-view v-else />
-      <MainNavigator></MainNavigator>
+      <!-- <MainNavigator></MainNavigator> -->
     </div>
   </ConfigProvider>
 </template>
