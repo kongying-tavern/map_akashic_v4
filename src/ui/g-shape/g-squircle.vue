@@ -64,7 +64,7 @@ const path = computed(() => {
       :id="id"
       :viewBox="`0 0 ${squircleGeometry.w} ${squircleGeometry.h}`"
       xmlns="http://www.w3.org/2000/svg"
-      class="absolute inset-0 pointer-events-none"
+      class="absolute inset-0 -z-1"
       aria-hidden="true"
     >
       <defs>

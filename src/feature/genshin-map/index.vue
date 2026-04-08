@@ -94,7 +94,7 @@ onUnmounted(() => {
     <canvas ref="canvasRef" />
 
     <div class="absolute inset-0 pointer-events-none">
-      <ZoomController />
+      <!-- <ZoomController /> -->
       <SiderToolbar />
     </div>
   </div>
