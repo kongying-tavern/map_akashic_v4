@@ -8,9 +8,13 @@
     "tsconfig.json": "tsconfig.*.json",
     "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock"
   },
+  "workbench.editorAssociations": {
+    "*.svg": "default"
+  },
   "files.associations": {
     ".env": "dotenv",
-    ".env.*.local": "dotenv"
+    ".env.*.local": "dotenv",
+    "*.svg": "html"
   },
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "oxc.fmt.configPath": "./.oxfmtrc.json",
