@@ -35,9 +35,10 @@ onMounted(() => {
   // setup tile layer
   const tileLayer = new TilesetLayer({
     data: config,
+    showTileLayer: true,
     showBounds: true,
     showOrigin: true,
-    showTileInfo: true,
+    // showTileInfo: true,
   })
 
   // setup deck

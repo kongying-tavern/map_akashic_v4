@@ -63,6 +63,8 @@ export interface TileLayerFactoryOptions {
 export interface TilesetLayerProps {
   /** 图层数据 */
   data: ResolvedTileset | null
+  /** @debug 是否显示 tile 的原始图层 */
+  showTileLayer?: boolean
   /** @debug 是否显示边界框 */
   showBounds?: boolean
   /** @debug 是否显示原点 */

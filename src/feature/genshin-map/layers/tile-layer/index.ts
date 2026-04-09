@@ -67,11 +67,13 @@ export class TilesetLayer extends CompositeLayer<TilesetLayerProps> {
   }
 
   renderLayers = (): (Layer | null)[] => {
-    const tileLayer = createTileLayer(this.props, TILE_LAYER_FACTORY_CONFIG, {
-      getOrLoadTile: this.#getOrLoadTile,
-      minZoom: TILE_GRID_MIN_ZOOM,
-      revision: this.#tileLayerRevision,
-    })
+    const tileLayer = this.props.showTileLayer
+      ? createTileLayer(this.props, TILE_LAYER_FACTORY_CONFIG, {
+          getOrLoadTile: this.#getOrLoadTile,
+          minZoom: TILE_GRID_MIN_ZOOM,
+          revision: this.#tileLayerRevision,
+        })
+      : null
     const tileGridLayer = this.props.showTileInfo
       ? (createTileGridLayer(this.props, this.context.viewport, TILE_LAYER_FACTORY_CONFIG) ?? [])
       : []
