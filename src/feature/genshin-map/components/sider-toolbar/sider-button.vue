@@ -5,7 +5,6 @@ import { GSquircle } from '@/ui/g-shape'
 const props = defineProps<{
   selected?: boolean
   icon: Component
-  iconkey: string
   label: string
 }>()
 </script>
@@ -23,7 +22,7 @@ const props = defineProps<{
     ]"
   >
     <!-- 按钮图标 -->
-    <component :is="props.icon" :iconkey="props.iconkey" class="sider-button-icon p-4.5" />
+    <component :is="props.icon" class="sider-button-icon p-4.5" />
     <!-- 按钮文本 -->
     <div
       v-show="!props.selected"
@@ -63,6 +62,26 @@ const props = defineProps<{
   transition:
     --icon-move-y 150ms cubic-bezier(0.34, 1.56, 0.64, 1),
     --icon-fill-progress 0s ease-out;
+}
+
+.sider-button::before {
+  position: absolute;
+  content: '';
+  pointer-events: none;
+  left: 0;
+  top: 50%;
+  transform: translateY(-100%);
+  border-radius: 0.25rem;
+  width: 0.25rem;
+  height: 1.25rem;
+  z-index: 10;
+  background-color: var(--text-color);
+  opacity: 0;
+}
+.sider-button.is-selected::before {
+  opacity: 1;
+  transform: translateY(-50%);
+  transition: all 150ms ease;
 }
 
 .sider-button:hover {

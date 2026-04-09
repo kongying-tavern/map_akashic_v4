@@ -1,53 +1,142 @@
 <script setup lang="ts">
+import { useUrlSearchParams } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 import RegularFilter from '@/ui/g-icons/regular-filter.vue'
+import RegularLocale from '@/ui/g-icons/regular-locale.vue'
 import RegularLocation from '@/ui/g-icons/regular-location.vue'
+import RegularSetting from '@/ui/g-icons/regular-setting.vue'
+import CollapseButton from './collapse-button.vue'
 import SiderButton from './sider-button.vue'
 
-const selectedMenu = ref('filter')
+const enum MENU_KEYS {
+  FILTER = 'filter',
+  TRACK = 'track',
+  LOCALE = 'locale',
+  SETTING = 'setting',
+}
 
-const items = [
-  { label: '过滤', key: 'filter', icon: RegularFilter },
-  { label: '追踪', key: 'advanced', icon: RegularLocation },
-]
+interface MenuConfig {
+  label: string
+  icon: Component
+  component?: Component
+}
+
+const { t } = useI18n()
+
+const menuConfigMap = computed<Record<MENU_KEYS, MenuConfig>>(() => ({
+  [MENU_KEYS.FILTER]: {
+    label: t('filter'),
+    icon: RegularFilter,
+    component: defineComponent({ render: () => 'TODO' }),
+  },
+  [MENU_KEYS.TRACK]: {
+    label: t('track'),
+    icon: RegularLocation,
+    component: defineComponent({ render: () => 'TODO' }),
+  },
+  [MENU_KEYS.LOCALE]: {
+    label: t('locale'),
+    icon: RegularLocale,
+    component: defineAsyncComponent(() => import('@/feature/sider-menus/item-locale/index.vue')),
+  },
+  [MENU_KEYS.SETTING]: {
+    label: t('setting'),
+    icon: RegularSetting,
+    component: defineComponent({ render: () => 'TODO' }),
+  },
+}))
+
+const mainItems = [MENU_KEYS.FILTER, MENU_KEYS.TRACK]
+const footerItems = [MENU_KEYS.LOCALE, MENU_KEYS.SETTING]
+
+const params = useUrlSearchParams('history')
+
+const selectedMenu = computed<MENU_KEYS | null>({
+  get: () => {
+    return (typeof params.sider !== 'string' ? null : params.sider) as MENU_KEYS
+  },
+  set: (value) => {
+    params.sider = value ?? ''
+  },
+})
+
+const collapsed = computed({
+  get: () => {
+    return params.collapsed === '1'
+  },
+  set: (bool) => {
+    params.collapsed = bool ? '1' : '0'
+  },
+})
+
+const toggleMenu = (key: MENU_KEYS) => {
+  if (key === selectedMenu.value) {
+    selectedMenu.value = null
+  } else {
+    selectedMenu.value = key
+  }
+}
 </script>
 
 <template>
   <div
-    class="sider-toolbar sider-toolbar-vars fixed top-0 left-0 w-[min(100dvw,24rem)] h-100dvh z-1 pointer-events-auto"
+    class="sider-toolbar sider-toolbar-vars fixed top-0 left-0 w-[min(100dvw,24rem)] h-100dvh z-1"
   >
+    <CollapseButton class="pointer-events-auto" v-model:collapsed="collapsed" />
+
     <!-- 左侧边条 -->
     <div
-      class="absolute left-0 top-0 w-[calc(var(--tap-width)+1px)] z-2 h-full bg-[--bg-level-1] border-r-1 border-[--border-color] select-none"
+      :class="[
+        'sider-toolbar-left absolute left-0 top-0 z-2 pt-16',
+        'w-[calc(var(--tap-width)+1px)] h-full',
+        'flex flex-col',
+        'border-r-1 border-[--border-color] bg-[--bg-level-1]',
+        'select-none',
+        collapsed ? 'is-collapsed' : 'pointer-events-auto',
+      ]"
     >
-      <SiderButton
-        v-for="item in items"
-        :key="item.key"
-        :selected="selectedMenu === item.key"
-        :icon="item.icon"
-        :iconkey="item.key"
-        :label="item.label"
-        @click="selectedMenu = item.key"
-      />
+      <div class="flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-hide">
+        <SiderButton
+          v-for="item in mainItems"
+          :key="item"
+          :selected="selectedMenu === item"
+          :icon="menuConfigMap[item].icon"
+          :label="menuConfigMap[item].label"
+          @click="() => toggleMenu(item)"
+        />
+      </div>
+
+      <div class="shrink-0 overflow-hidden">
+        <SiderButton
+          v-for="item in footerItems"
+          :key="item"
+          :selected="selectedMenu === item"
+          :icon="menuConfigMap[item].icon"
+          :label="menuConfigMap[item].label"
+          @click="() => toggleMenu(item)"
+        />
+      </div>
     </div>
 
     <!-- 右侧拓展面板 -->
     <div
-      class="absolute top-0 left-[var(--tap-width)] w-80 h-full bg-[--bg-level-2] border-r-1 border-[hsl(180,100%,100%,40%)] pointer-events-auto"
+      v-if="selectedMenu"
+      :class="[
+        'sider-toolbar-right',
+        'absolute top-0 left-[var(--tap-width)]',
+        'w-80 h-full',
+        'bg-[--bg-level-2] border-r-1 border-[hsl(180,100%,100%,40%)]',
+        collapsed ? 'is-collapsed' : 'pointer-events-auto',
+        selectedMenu ? 'is-selected' : '',
+      ]"
     >
-      <div class="h-12 flex items-center px-4 gap-2">
-        <div class="w-3 h-3 grid place-items-center">
-          <svg viewBox="0 0 1024 960" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M1024,480C1024,488.667 1020.83,496.167 1014.5,502.5C1008.17,508.833 1000.67,512 992,512L109.5,512L502.5,905.5C508.833,911.833 512,919.333 512,928C512,936.667 508.833,944.167 502.5,950.5C496.167,956.833 488.667,960 480,960C471.333,960 463.833,956.833 457.5,950.5L11,504C7.33333,500.333 4.58333,496.667 2.75,493C0.916667,489.333 0,485 0,480C0,475 0.916667,470.667 2.75,467C4.58333,463.333 7.33333,459.667 11,456L457.5,9.5C463.833,3.16669 471.333,0 480,0C488.667,0 496.167,3.16669 502.5,9.5C508.833,15.8334 512,23.3334 512,32C512,40.6667 508.833,48.1667 502.5,54.5L109.5,448L992,448C1000.67,448 1008.17,451.167 1014.5,457.5C1020.83,463.833 1024,471.333 1024,480Z"
-              fill="currentColor"
-            ></path>
-          </svg>
-        </div>
-        <div>Back</div>
+      <div class="h-12 flex items-center px-2 gap-2 select-none">
+        {{ menuConfigMap[selectedMenu].label }}
       </div>
-      <div class="h-12 flex items-center px-2 bg-[hsl(0,0%,98%)]">
-        <div class="w-8 h-8 bg-[hsl(40,50%,90%)] rounded text-xs grid place-items-center">地区</div>
-      </div>
+      <Suspense>
+        <template #fallback> Loading... </template>
+        <component :is="menuConfigMap[selectedMenu].component" />
+      </Suspense>
     </div>
   </div>
 </template>
@@ -69,5 +158,27 @@ const items = [
 .sider-toolbar {
   color: var(--text-color);
   font-size: 14px;
+}
+
+.sider-toolbar-left {
+  transition: all 150ms ease;
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+}
+.sider-toolbar-left.is-collapsed {
+  clip-path: inset(0 0 50% 0);
+  opacity: 0;
+}
+
+.sider-toolbar-right {
+  transition: all 150ms ease;
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+  transition-delay: 150ms;
+}
+.sider-toolbar-right.is-collapsed {
+  clip-path: inset(0 50% 0 0);
+  opacity: 0;
+  transition-delay: 0ms;
 }
 </style>
