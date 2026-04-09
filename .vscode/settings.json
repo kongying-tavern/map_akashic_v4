@@ -20,5 +20,8 @@
   "oxc.fmt.configPath": "./.oxfmtrc.json",
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
-  "json.schemaDownload.enable": true
+  "json.schemaDownload.enable": true,
+  "i18n-ally.localesPaths": ["src/locales"],
+  "i18n-ally.sourceLanguage": "zh-CN",
+  "i18n-ally.keystyle": "flat"
 }
