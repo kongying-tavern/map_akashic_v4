@@ -35,7 +35,7 @@ onMounted(() => {
   // setup tile layer
   const tileLayer = new TilesetLayer({
     data: config,
-    showTileLayer: true,
+    showTileLayer: false,
     showBounds: true,
     showOrigin: true,
     // showTileInfo: true,

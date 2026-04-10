@@ -1,0 +1,25 @@
+body {
+  /* 灰阶 */
+  --gl-1: light-dark(oklch(0.99 0 0), oklch(0.12 0 0));
+  --gl-2: light-dark(oklch(0.96 0 0), oklch(0.17 0 0));
+  --gl-3: light-dark(oklch(0.92 0 0), oklch(0.24 0 0));
+  --gl-4: light-dark(oklch(0.85 0 0), oklch(0.32 0 0));
+  --gl-5: light-dark(oklch(0.65 0 0), oklch(0.55 0 0));
+  --gl-6: light-dark(oklch(0.45 0 0), oklch(0.75 0 0));
+  --gl-7: light-dark(oklch(0.25 0 0), oklch(0.91 0 0));
+  --gl-8: light-dark(oklch(0.11 0 0), oklch(0.98 0 0));
+
+  /* 主题色 */
+  --brand: 48;
+  --color-brand-1: light-dark(oklch(96% 0.02 var(--brand)), oklch(20% 0.04 var(--brand)));
+  --color-brand-2: light-dark(oklch(90% 0.04 var(--brand)), oklch(28% 0.06 var(--brand)));
+  --color-brand-3: light-dark(oklch(82% 0.07 var(--brand)), oklch(36% 0.08 var(--brand)));
+  --color-brand-4: light-dark(oklch(74% 0.09 var(--brand)), oklch(44% 0.1 var(--brand)));
+  /* Brand-5 通常作为 UI 中的主色状态过渡 */
+  --color-brand-5: light-dark(oklch(64% 0.11 var(--brand)), oklch(52% 0.12 var(--brand)));
+  /* Brand-6 为标准主色，深浅模式下亮度微调以符合感知 */
+  --color-brand-6: light-dark(oklch(54% 0.11 var(--brand)), oklch(60% 0.14 var(--brand)));
+  --color-brand-7: light-dark(oklch(46% 0.12 var(--brand)), oklch(72% 0.11 var(--brand)));
+  --color-brand-8: light-dark(oklch(35% 0.1 var(--brand)), oklch(84% 0.08 var(--brand)));
+  --color-brand-9: light-dark(oklch(24% 0.08 var(--brand)), oklch(94% 0.04 var(--brand)));
+}

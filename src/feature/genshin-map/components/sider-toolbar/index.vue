@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useUrlSearchParams } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
+import { useUrlSearchStore } from '@/stores'
 import RegularFilter from '@/ui/g-icons/regular-filter.vue'
 import RegularLocale from '@/ui/g-icons/regular-locale.vue'
 import RegularLocation from '@/ui/g-icons/regular-location.vue'
@@ -21,13 +21,15 @@ interface MenuConfig {
   component?: Component
 }
 
+const urlSearchStore = useUrlSearchStore()
+
 const { t } = useI18n()
 
 const menuConfigMap = computed<Record<MENU_KEYS, MenuConfig>>(() => ({
   [MENU_KEYS.FILTER]: {
     label: t('filter'),
     icon: RegularFilter,
-    component: defineComponent({ render: () => 'TODO' }),
+    component: defineAsyncComponent(() => import('@/feature/sider-menus/item-filter/index.vue')),
   },
   [MENU_KEYS.TRACK]: {
     label: t('track'),
@@ -42,30 +44,19 @@ const menuConfigMap = computed<Record<MENU_KEYS, MenuConfig>>(() => ({
   [MENU_KEYS.SETTING]: {
     label: t('setting'),
     icon: RegularSetting,
-    component: defineComponent({ render: () => 'TODO' }),
+    component: defineAsyncComponent(() => import('@/feature/sider-menus/item-setting/index.vue')),
   },
 }))
 
 const mainItems = [MENU_KEYS.FILTER, MENU_KEYS.TRACK]
 const footerItems = [MENU_KEYS.LOCALE, MENU_KEYS.SETTING]
 
-const params = useUrlSearchParams('history')
-
 const selectedMenu = computed<MENU_KEYS | null>({
   get: () => {
-    return (typeof params.sider !== 'string' ? null : params.sider) as MENU_KEYS
+    return urlSearchStore.sider as MENU_KEYS
   },
   set: (value) => {
-    params.sider = value ?? ''
-  },
-})
-
-const collapsed = computed({
-  get: () => {
-    return params.collapsed === '1'
-  },
-  set: (bool) => {
-    params.collapsed = bool ? '1' : '0'
+    urlSearchStore.sider = value ?? null
   },
 })
 
@@ -82,7 +73,7 @@ const toggleMenu = (key: MENU_KEYS) => {
   <div
     class="sider-toolbar sider-toolbar-vars fixed top-0 left-0 w-[min(100dvw,24rem)] h-100dvh z-1"
   >
-    <CollapseButton class="pointer-events-auto" v-model:collapsed="collapsed" />
+    <CollapseButton class="pointer-events-auto" v-model:collapsed="urlSearchStore.collapsed" />
 
     <!-- 左侧边条 -->
     <div
@@ -92,7 +83,7 @@ const toggleMenu = (key: MENU_KEYS) => {
         'flex flex-col',
         'border-r-1 border-[--border-color] bg-[--bg-level-1]',
         'select-none',
-        collapsed ? 'is-collapsed' : 'pointer-events-auto',
+        urlSearchStore.collapsed ? 'is-collapsed' : 'pointer-events-auto',
       ]"
     >
       <div class="flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-hide">
@@ -125,8 +116,8 @@ const toggleMenu = (key: MENU_KEYS) => {
         'sider-toolbar-right',
         'absolute top-0 left-[var(--tap-width)]',
         'w-80 h-full',
-        'bg-[--bg-level-2] border-r-1 border-[hsl(180,100%,100%,40%)]',
-        collapsed ? 'is-collapsed' : 'pointer-events-auto',
+        'bg-[--bg-level-2] border-r-1 border-[--border-color]',
+        urlSearchStore.collapsed ? 'is-collapsed' : 'pointer-events-auto',
         selectedMenu ? 'is-selected' : '',
       ]"
     >
@@ -145,14 +136,14 @@ const toggleMenu = (key: MENU_KEYS) => {
 .sider-toolbar-vars {
   --tap-width: 4rem;
   /* 主题色应做提取 */
-  --text-color: light-dark(hsl(40, 44%, 46%), hsl(40, 44%, 46%));
-  --text-active-color: light-dark(hsl(40, 44%, 60%), hsl(40, 44%, 60%));
-  --border-color: light-dark(hsl(0, 0%, 90%), hsl(0, 0%, 30%));
-  --bg-level-1: light-dark(hsl(0, 0%, 98%, 100%), hsl(227, 18%, 20%, 100%));
-  --bg-level-2: light-dark(hsl(0, 0%, 95%, 100%), hsl(227, 18%, 30%, 100%));
-  --item-hover-bg: light-dark(hsl(0, 0%, 92%), hsl(227, 18%, 24%));
-  --item-active-bg: light-dark(hsl(0, 0%, 88%), hsl(227, 18%, 28%));
-  --item-selected-bg: light-dark(hsl(40, 60%, 90%), hsl(40, 50%, 30%));
+  --text-color: var(--color-brand-6);
+  --text-active-color: var(--color-brand-5);
+  --border-color: var(--gl-3);
+  --bg-level-1: var(--gl-1);
+  --bg-level-2: var(--gl-3);
+  --item-hover-bg: var(--color-brand-1);
+  --item-active-bg: var(--color-brand-2);
+  --item-selected-bg: var(--color-brand-2);
 }
 
 .sider-toolbar {

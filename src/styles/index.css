@@ -1,3 +1,5 @@
+@import './theme.css';
+
 /* ============================== properties ============================== */
 @property --clip {
   syntax: '<length-percentage>';
@@ -35,7 +37,7 @@
 
 /* ============================== styles ============================== */
 html {
-  color-scheme: light dark;
+  color-scheme: normal;
 }
 html.light {
   color-scheme: light;

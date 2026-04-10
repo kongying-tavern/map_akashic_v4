@@ -1,19 +1,8 @@
 <script setup lang="ts">
-import { useUrlSearchParams } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
+import { useUrlSearchStore } from '@/stores'
 
-const params = useUrlSearchParams('history')
-
-const locale = computed<I18nType.Locale>({
-  get: () => {
-    return (
-      typeof params.locale !== 'string' ? 'zh-CN' : params.locale || 'zh-CN'
-    ) as I18nType.Locale
-  },
-  set: (value) => {
-    params.locale = value ?? ''
-  },
-})
+const urlSearchStore = useUrlSearchStore()
 
 const { t, availableLocales, locale: i18nLocale } = useI18n({ useScope: 'global' })
 
@@ -40,7 +29,7 @@ const visibleLocales = computed(() => {
 })
 
 watch(
-  () => locale.value,
+  () => urlSearchStore.locale,
   (v) => {
     i18nLocale.value = v
   },
@@ -48,7 +37,7 @@ watch(
 )
 
 function selectLocale(v: I18nType.Locale) {
-  locale.value = v
+  urlSearchStore.locale = v
   i18nLocale.value = v
 }
 </script>
@@ -73,10 +62,10 @@ function selectLocale(v: I18nType.Locale) {
         v-for="item in visibleLocales"
         :key="item.value"
         class="locale-item"
-        :class="{ 'is-selected': item.value === locale }"
+        :class="{ 'is-selected': item.value === urlSearchStore.locale }"
         type="button"
         role="option"
-        :aria-selected="item.value === locale"
+        :aria-selected="item.value === urlSearchStore.locale"
         @click="selectLocale(item.value)"
       >
         <span class="locale-item-label">{{ item.label }}</span>

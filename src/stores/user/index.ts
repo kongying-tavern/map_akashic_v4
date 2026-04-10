@@ -1,5 +1,6 @@
 import { useLocalStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
+import * as API from '@/api/globals'
 import { StorageKey } from '@/shared/enums/storage-key'
 import { localTokenSchema } from '@/shared/schemas/token'
 import type { LocalToken } from '@/shared/types/token'
@@ -26,7 +27,12 @@ export const useUserStore = defineStore('user', () => {
     },
   })
 
+  const info = shallowRef<API.SysUserVo | null>(null)
+
   return {
-    token,
+    /** 鉴权令牌 */
+    token: computed(() => token.value),
+    /** 用户信息 */
+    info: computed(() => info.value),
   }
 })

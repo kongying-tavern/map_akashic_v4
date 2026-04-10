@@ -71,8 +71,8 @@ const id = useId()
   --zip-width: -5%;
   --zip-active-width: -10%;
   --rotate: 0deg;
-  --bg-hover: hsl(0, 0%, 92%);
-  --bg-active: hsl(0, 0%, 88%);
+  --bg-hover: light-dark(hsl(0, 0%, 92%), hsl(0, 0%, 30%));
+  --bg-active: light-dark(hsl(0, 0%, 88%), hsl(0, 0%, 20%));
   --light-hover: transparent;
   --progress: 0%;
 }
@@ -85,15 +85,15 @@ const id = useId()
 }
 .collapse-button:hover {
   background-color: var(--bg-hover);
-  filter: drop-shadow(0 0 12px #ffffff);
+  filter: drop-shadow(0 0 12px light-dark(#ffffff, #000000));
 }
 .collapse-button:active {
   --zip-width: var(--zip-active-width);
   background-color: var(--bg-active);
-  filter: drop-shadow(0 0 2px #ffffff);
+  filter: drop-shadow(0 0 2px light-dark(#ffffff, #000000));
 }
 .collapse-button.is-collapsed {
-  --light-hover: hsl(0, 0%, 100%);
+  --light-hover: light-dark(hsl(0, 0%, 100%), hsl(0, 0%, 0%));
   --bg-hover: transparent;
   --bg-active: transparent;
   --zip-width: 0%;
