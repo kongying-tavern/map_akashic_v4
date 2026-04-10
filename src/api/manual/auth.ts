@@ -34,16 +34,21 @@ export const authInstance = createAlova({
   },
 })
 
-interface LoginForm {
+export interface LoginForm {
   username: string
   password: string
 }
 
-interface LoginResult {
+export interface LoginResult {
+  /** 访问令牌 */
   access_token: string
+  /** 令牌类型 */
   token_type: string
+  /** 过期时间 */
   expires_in: number
+  /** 作用域 */
   scope: string
+  /** 唯一标识 */
   jti: string
 }
 
