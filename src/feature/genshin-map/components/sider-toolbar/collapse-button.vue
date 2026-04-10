@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const collapsed = defineModel<boolean>('collapsed')
+
+const id = useId()
 </script>
 
 <template>
@@ -17,7 +19,7 @@ const collapsed = defineModel<boolean>('collapsed')
     >
       <defs>
         <path
-          id="path"
+          :id="`path-${id}`"
           d="M500,0 L580,320 L500,450 L420,320 Z"
           stroke-width="1"
           stroke-linecap="round"
@@ -25,18 +27,34 @@ const collapsed = defineModel<boolean>('collapsed')
           vector-effect="non-scaling-stroke"
           class="translate-y-[var(--zip-width)]"
         />
+        <clipPath :id="`clip-path-${id}`" class="origin-c scale-[var(--progress)]">
+          <rect x="0" y="0" width="1000" height="1000" fill="white" />
+        </clipPath>
+        <g :id="`g-${id}`" class="origin-[500px_500px] rotate-[var(--rotate)]">
+          <use :href="`#path-${id}`" transform-origin="500 500" transform="rotate(-45)" />
+          <use :href="`#path-${id}`" transform-origin="500 500" transform="rotate(+45)" />
+          <use :href="`#path-${id}`" transform-origin="500 500" transform="rotate(135)" />
+          <use :href="`#path-${id}`" transform-origin="500 500" transform="rotate(225)" />
+        </g>
       </defs>
-      <g class="origin-[500px_500px] rotate-[var(--rotate)]" stroke="currentColor">
-        <use href="#path" transform-origin="500 500" transform="rotate(-45)" />
-        <use href="#path" transform-origin="500 500" transform="rotate(+45)" />
-        <use href="#path" transform-origin="500 500" transform="rotate(135)" />
-        <use href="#path" transform-origin="500 500" transform="rotate(225)" />
-      </g>
+      <use :href="`#g-${id}`" stroke="currentColor" />
+      <use
+        :href="`#g-${id}`"
+        fill="#FFFFFFA0"
+        stroke="white"
+        :clip-path="`url(#clip-path-${id})`"
+      />
     </svg>
   </div>
 </template>
 
 <style scoped>
+@property --progress {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
 @property --zip-width {
   syntax: '<percentage>';
   inherits: true;
@@ -56,21 +74,23 @@ const collapsed = defineModel<boolean>('collapsed')
   --bg-hover: hsl(0, 0%, 92%);
   --bg-active: hsl(0, 0%, 88%);
   --light-hover: transparent;
+  --progress: 0%;
 }
 
 .collapse-button {
   transition:
     --zip-width 150ms ease,
-    --rotate 150ms ease;
+    --rotate 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    --progress 150ms ease;
 }
 .collapse-button:hover {
   background-color: var(--bg-hover);
-  filter: drop-shadow(0 0 1px var(--light-hover)) drop-shadow(0 0 8px var(--light-hover));
+  filter: drop-shadow(0 0 12px #ffffff);
 }
 .collapse-button:active {
   --zip-width: var(--zip-active-width);
   background-color: var(--bg-active);
-  filter: drop-shadow(0 0 1px var(--light-hover));
+  filter: drop-shadow(0 0 2px #ffffff);
 }
 .collapse-button.is-collapsed {
   --light-hover: hsl(0, 0%, 100%);
@@ -79,5 +99,9 @@ const collapsed = defineModel<boolean>('collapsed')
   --zip-width: 0%;
   --zip-active-width: -5%;
   --rotate: 45deg;
+  --progress: 100%;
+}
+.collapse-button.is-collapsed:active {
+  --rotate: 50deg;
 }
 </style>
