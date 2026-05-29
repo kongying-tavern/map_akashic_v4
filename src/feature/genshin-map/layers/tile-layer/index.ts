@@ -10,7 +10,7 @@ import {
   createTileLayer,
 } from './tile-factories'
 
-const BASE_URL = import.meta.env.VITE_TILE_ASSETS_BASE
+const BASE_URL = `${import.meta.env.VITE_SERVICE_RESOURCE_URL}/tiles_`
 const ZOOM_MAPPING = 13
 const TILE_GRID_SIZE = 256
 const TILE_GRID_MIN_ZOOM = -3

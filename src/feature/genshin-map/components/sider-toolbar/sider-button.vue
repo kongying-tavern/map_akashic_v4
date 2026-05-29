@@ -33,7 +33,7 @@ const props = defineProps<{
   </GSquircle>
 </template>
 
-<style scoped>
+<style lang="css" scoped>
 @property --icon-move-y {
   syntax: '<percentage>';
   inherits: true;
@@ -99,8 +99,8 @@ const props = defineProps<{
   --icon-fill-progress: 100%;
   background-color: var(--item-selected-bg);
   transition:
-    --icon-move-y 150ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    --icon-fill-progress 150ms ease-out;
+    --icon-move-y 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    --icon-fill-progress 300ms ease-out;
 }
 
 .sider-button-icon {

@@ -1,19 +1,11 @@
-import { useUrlSearchParams } from '@vueuse/core'
+import { useLocalStorage, useUrlSearchParams } from '@vueuse/core'
 import { defineStore } from 'pinia'
+import { StorageKey } from '@/shared/enums/storage-key'
 
 export const useUrlSearchStore = defineStore('url-search', () => {
   const params = useUrlSearchParams('history')
 
-  const locale = computed<I18nType.Locale>({
-    get: () => {
-      return (
-        typeof params.locale !== 'string' ? 'zh-CN' : params.locale || 'zh-CN'
-      ) as I18nType.Locale
-    },
-    set: (value) => {
-      params.locale = value ?? ''
-    },
-  })
+  const locale = useLocalStorage<I18nType.Locale>(StorageKey.LOCALE, 'zh')
 
   const sider = computed<string | null>({
     get: () => {

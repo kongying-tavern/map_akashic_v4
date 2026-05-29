@@ -1,6 +1,6 @@
+import { useRequest } from 'alova/client'
 import { defineStore } from 'pinia'
-import type { MapConfig } from '@/api'
-import { config as configApi } from '@/api'
+import Api from '@/api'
 import type { ResolvedTileset } from '@/feature/genshin-map/types'
 import { parseTilesConfigs } from './merge'
 
@@ -8,7 +8,14 @@ import { parseTilesConfigs } from './merge'
  * 应用前置配置
  */
 export const useConfigStore = defineStore('config', () => {
-  const config = shallowRef<MapConfig>({})
+  const {
+    data: config,
+    loading,
+    error,
+    send,
+  } = useRequest(Api.config.getAppConfig(), {
+    initialData: () => ({}),
+  })
 
   const tiles = computed(() => {
     try {
@@ -23,16 +30,13 @@ export const useConfigStore = defineStore('config', () => {
   })
 
   const loadConfig = async () => {
-    const res = await configApi.getDadianJson()
-    if (!res) {
-      throw new Error('Failed to load config')
-    }
-    config.value = res
-    return res
+    await send()
   }
 
   return {
     config: computed(() => config.value),
+    loading,
+    error,
     tiles,
     loadConfig,
   }

@@ -16,11 +16,12 @@ export const useViewStore = defineStore('map-view', () => {
     return eventhook.on(callback)
   }
 
-  const syncViewStateChange = (newState: Partial<OrthographicViewState>) => {
-    state.value = {
-      ...state.value,
-      ...newState,
-    }
+  const syncViewStateChange = (newState: OrthographicViewState) => {
+    state.value = newState
+    // state.value = {
+    //   ...state.value,
+    //   ...newState,
+    // }
   }
 
   const setState = (newState: Partial<OrthographicViewState>) => {

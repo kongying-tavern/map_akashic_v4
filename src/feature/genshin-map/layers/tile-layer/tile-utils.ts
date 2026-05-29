@@ -16,7 +16,9 @@ export const loadTileImage = async (url: string, signal?: AbortSignal) => {
   if (res.status !== 200) {
     throw new Error(`failed to load tile: ${url}, ${res.statusText}.`)
   }
-  const blob = await res.blob()
+  const blob = await res
+    .clone() // DEBUG:
+    .blob()
   // cache the blob, no need to wait
   const bmp = await createImageBitmap(blob)
   return { bmp, blob }

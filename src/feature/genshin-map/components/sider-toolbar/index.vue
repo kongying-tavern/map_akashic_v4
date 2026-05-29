@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useUrlSearchStore } from '@/stores'
 import RegularFilter from '@/ui/g-icons/regular-filter.vue'
 import RegularLocale from '@/ui/g-icons/regular-locale.vue'
 import RegularLocation from '@/ui/g-icons/regular-location.vue'
@@ -21,9 +20,17 @@ interface MenuConfig {
   component?: Component
 }
 
-const urlSearchStore = useUrlSearchStore()
-
 const { t } = useI18n()
+
+const collapsed = defineModel<boolean>('collapsed', {
+  required: false,
+  default: false,
+})
+
+const sider = defineModel<MENU_KEYS | null>('sider', {
+  required: false,
+  default: MENU_KEYS.FILTER,
+})
 
 const menuConfigMap = computed<Record<MENU_KEYS, MenuConfig>>(() => ({
   [MENU_KEYS.FILTER]: {
@@ -51,20 +58,11 @@ const menuConfigMap = computed<Record<MENU_KEYS, MenuConfig>>(() => ({
 const mainItems = [MENU_KEYS.FILTER, MENU_KEYS.TRACK]
 const footerItems = [MENU_KEYS.LOCALE, MENU_KEYS.SETTING]
 
-const selectedMenu = computed<MENU_KEYS | null>({
-  get: () => {
-    return urlSearchStore.sider as MENU_KEYS
-  },
-  set: (value) => {
-    urlSearchStore.sider = value ?? null
-  },
-})
-
 const toggleMenu = (key: MENU_KEYS) => {
-  if (key === selectedMenu.value) {
-    selectedMenu.value = null
+  if (key === sider.value) {
+    sider.value = null
   } else {
-    selectedMenu.value = key
+    sider.value = key
   }
 }
 </script>
@@ -73,7 +71,7 @@ const toggleMenu = (key: MENU_KEYS) => {
   <div
     class="sider-toolbar sider-toolbar-vars fixed top-0 left-0 w-[min(100dvw,24rem)] h-100dvh z-1"
   >
-    <CollapseButton class="pointer-events-auto" v-model:collapsed="urlSearchStore.collapsed" />
+    <CollapseButton class="pointer-events-auto" v-model:collapsed="collapsed" />
 
     <!-- 左侧边条 -->
     <div
@@ -83,14 +81,14 @@ const toggleMenu = (key: MENU_KEYS) => {
         'flex flex-col',
         'border-r-1 border-[--border-color] bg-[--bg-level-1]',
         'select-none',
-        urlSearchStore.collapsed ? 'is-collapsed' : 'pointer-events-auto',
+        collapsed ? 'is-collapsed' : 'pointer-events-auto',
       ]"
     >
       <div class="flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-hide">
         <SiderButton
           v-for="item in mainItems"
           :key="item"
-          :selected="selectedMenu === item"
+          :selected="sider === item"
           :icon="menuConfigMap[item].icon"
           :label="menuConfigMap[item].label"
           @click="() => toggleMenu(item)"
@@ -101,7 +99,7 @@ const toggleMenu = (key: MENU_KEYS) => {
         <SiderButton
           v-for="item in footerItems"
           :key="item"
-          :selected="selectedMenu === item"
+          :selected="sider === item"
           :icon="menuConfigMap[item].icon"
           :label="menuConfigMap[item].label"
           @click="() => toggleMenu(item)"
@@ -111,22 +109,22 @@ const toggleMenu = (key: MENU_KEYS) => {
 
     <!-- 右侧拓展面板 -->
     <div
-      v-if="selectedMenu"
+      v-if="sider"
       :class="[
         'sider-toolbar-right',
         'absolute top-0 left-[var(--tap-width)]',
         'w-80 h-full',
         'bg-[--bg-level-2] border-r-1 border-[--border-color]',
-        urlSearchStore.collapsed ? 'is-collapsed' : 'pointer-events-auto',
-        selectedMenu ? 'is-selected' : '',
+        collapsed ? 'is-collapsed' : 'pointer-events-auto',
+        sider ? 'is-selected' : '',
       ]"
     >
       <div class="h-12 flex items-center px-2 gap-2 select-none">
-        {{ menuConfigMap[selectedMenu].label }}
+        {{ menuConfigMap[sider].label }}
       </div>
       <Suspense>
         <template #fallback> Loading... </template>
-        <component :is="menuConfigMap[selectedMenu].component" />
+        <component :is="menuConfigMap[sider].component" />
       </Suspense>
     </div>
   </div>
