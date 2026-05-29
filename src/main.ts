@@ -9,8 +9,8 @@ import { router } from './router'
 
 const i18n = createI18n<[I18nType.Message], I18nType.Locale>({
   legacy: false,
-  locale: 'zh-CN',
-  fallbackLocale: 'zh-CN',
+  locale: document.documentElement.lang || 'en',
+  fallbackLocale: 'en',
   messages,
 })
 
