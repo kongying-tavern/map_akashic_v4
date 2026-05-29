@@ -3,21 +3,64 @@ import { fileURLToPath } from 'node:url'
 import Vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
-import { defineConfig, loadEnv, PluginOption } from 'vite'
+import { defineConfig, loadEnv, type PluginOption, type ProxyOptions } from 'vite'
 import VueRouter from 'vue-router/vite'
+import * as z from 'zod'
+import { zhCN } from 'zod/locales'
 import { envSchema } from './envs/schema'
+import { Logger } from './infrastructure/logger'
 import { version } from './package.json' with { type: 'json' }
+
+z.config(zhCN())
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig(({ mode }) => {
+  Logger.info(`current mode is: ${mode}`)
+
   const env = loadEnv(mode, path.resolve('envs')) as unknown as ImportMetaEnv
-  try {
-    envSchema.parse(env)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : JSON.stringify(error)
-    throw new Error(`[Vite] 启动失败, 缺失关键环境变量: ${message}`)
+  const { error } = envSchema.safeParse(env)
+  if (error) {
+    throw new Error(`环境变量校验失败: ${error.message}`)
   }
+  Logger.success('环境变量校验通过')
+
+  const proxyList = [
+    {
+      name: '主服务',
+      match: env.VITE_SERVICE_MAIN_URL,
+      proxy: env.VITE_SERVICE_MAIN_PROXY,
+    },
+    {
+      name: '配置服务',
+      match: env.VITE_SERVICE_CONFIG_URL,
+      proxy: env.VITE_SERVICE_CONFIG_PROXY,
+    },
+    {
+      name: '资源服务',
+      match: env.VITE_SERVICE_RESOURCE_URL,
+      proxy: env.VITE_SERVICE_RESOURCE_PROXY,
+    },
+  ]
+
+  const proxy = proxyList.reduce(
+    (acc, item) => {
+      if (item.proxy) {
+        Logger.info(`${item.name}代理已启用`)
+        acc[item.match] = {
+          target: item.proxy,
+          changeOrigin: true,
+          rewrite: (path) => {
+            const rewritten = path.replace(item.match, '')
+            Logger.info(`${path} -> ${item.proxy}${rewritten}`)
+            return rewritten
+          },
+        }
+      }
+      return acc
+    },
+    {} as Record<string, ProxyOptions>,
+  )
 
   return {
     envDir: path.resolve(__dirname, 'envs'),
@@ -29,26 +72,7 @@ export default defineConfig(({ mode }) => {
     server: {
       // 原神上线于 2020 年 9 月 28 日
       port: 20928,
-      proxy: {
-        [env.VITE_API_BASE]: {
-          target: env.VITE_API_BASE_PROXY,
-          changeOrigin: true,
-          rewrite: (path) => {
-            const rewritten = path.replace(env.VITE_API_BASE, '')
-            console.log('[proxy]', `${path} -> ${env.VITE_API_BASE_PROXY}${rewritten}`)
-            return rewritten
-          },
-        },
-        [env.VITE_APP_CONFIG_URL]: {
-          target: env.VITE_APP_CONFIG_URL_PROXY,
-          changeOrigin: true,
-          rewrite: (path) => {
-            const rewritten = path.replace(env.VITE_APP_CONFIG_URL, '')
-            console.log('[proxy]', `${path} -> ${env.VITE_APP_CONFIG_URL_PROXY}${rewritten}`)
-            return rewritten
-          },
-        },
-      },
+      proxy,
     },
 
     resolve: {

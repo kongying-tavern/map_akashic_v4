@@ -3,18 +3,18 @@
     "composite": true,
     "target": "esnext",
     "lib": ["DOM", "ESNext", "ESNext.Array", "ESNext.AsyncIterable", "WebWorker"],
-    "baseUrl": ".",
-    "rootDir": ".",
+    "baseUrl": "./",
     "module": "esnext",
     "moduleResolution": "bundler",
     "moduleDetection": "auto",
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["vite/client"],
+    "types": ["vite/client", "vue-router/auto"],
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["index.html", "types", "src"]
+  "include": ["index.html", "types", "src"],
+  "exclude": ["./types/experimental.node.d.ts"]
 }
