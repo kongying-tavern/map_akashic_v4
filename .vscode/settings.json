@@ -1,7 +1,9 @@
 {
   "editor.codeActionsOnSave": {
     "source.format.oxc": "always",
-    "source.fixAll.oxc": "always"
+    "source.fixAll.oxc": "always",
+    "source.fixAll.eslint": "never",
+    "source.fixAll.ts": "never"
   },
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
@@ -17,11 +19,15 @@
     "*.svg": "html"
   },
   "editor.defaultFormatter": "oxc.oxc-vscode",
-  "oxc.fmt.configPath": "./.oxfmtrc.json",
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
   "json.schemaDownload.enable": true,
+  "i18n-ally.enabledFrameworks": ["vue", "vue-sfc"],
+  "i18n-ally.editor.preferEditor": true,
   "i18n-ally.localesPaths": ["src/locales"],
   "i18n-ally.sourceLanguage": "zh-CN",
-  "i18n-ally.keystyle": "flat"
+  "i18n-ally.keystyle": "flat",
+  "i18n-ally.namespace": false,
+  "i18n-ally.pathMatcher": "{locale}/{namespaces}.json",
+  "i18n-ally.dirStructure": "dir"
 }
