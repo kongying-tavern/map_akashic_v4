@@ -1,10 +1,9 @@
-import enUSCommon from './en-US/common.json'
-import enUSFeature from './en-US/feature.json'
-import zhCNCommon from './zh-CN/common.json'
-import zhCNFeature from './zh-CN/feature.json'
+import en from './en'
+import enUS from './en-US'
+import zhCN from './zh-CN'
 
 export const messages = {
-  'zh-CN': { ...zhCNCommon, ...zhCNFeature },
-  'en-US': { ...enUSCommon, ...enUSFeature },
-} as const satisfies Record<I18nType.Locale, I18nType.Message>
-
+  'en': en,
+  'zh-CN': zhCN,
+  'en-US': enUS,
+} satisfies Record<I18nType.Locale, I18nType.Message>

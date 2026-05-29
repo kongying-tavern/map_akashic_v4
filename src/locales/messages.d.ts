@@ -11,6 +11,6 @@ declare module 'vue-i18n' {
 declare global {
   namespace I18nType {
     type Message = MessageSchema
-    type Locale = 'zh-CN' | 'en-US'
+    type Locale = 'en' | 'zh-CN' | 'en-US'
   }
 }
