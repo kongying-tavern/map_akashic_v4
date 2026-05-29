@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "eslint", "import", "jsdoc", "node", "oxc", "promise", "vue"],
+  "categories": {},
+  "rules": {},
+  "settings": {
+    "next": {
+      "rootDir": []
+    },
+    "jsdoc": {
+      "ignorePrivate": false,
+      "ignoreInternal": false,
+      "ignoreReplacesDocs": true,
+      "overrideReplacesDocs": true,
+      "augmentsExtendsReplacesDocs": false,
+      "implementsReplacesDocs": false,
+      "exemptDestructuredRootsFromChecks": false,
+      "tagNamePreference": {}
+    },
+    "vitest": {
+      "typecheck": false
+    }
+  },
+  "env": {
+    "builtin": true
+  },
+  "globals": {},
+  "ignorePatterns": [
+    "./src/api/**/apiDefinitions.ts",
+    "./src/api/**/createApis.ts",
+    "./src/api/**/globals.d.ts"
+  ]
+}

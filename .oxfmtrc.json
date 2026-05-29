@@ -3,9 +3,9 @@
   "ignorePatterns": [
     "node_modules",
     "dist",
-    "src/api/apiDefinitions.ts",
-    "src/api/globals.d.ts",
-    "src/api/createApis.ts",
+    "./src/api/**/apiDefinitions.ts",
+    "./src/api/**/createApis.ts",
+    "./src/api/**/globals.d.ts",
     "pnpm-lock.yaml",
     "*.md"
   ],
@@ -13,6 +13,7 @@
   "semi": false,
   "singleQuote": true,
   "endOfLine": "lf",
+  "quoteProps": "consistent",
   "sortImports": {
     "newlinesBetween": false
   }
