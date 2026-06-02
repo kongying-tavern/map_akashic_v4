@@ -11,7 +11,10 @@ export interface ResolvedTileset {
   /** ### 图层文件后缀 */
   extension: string
 
-  /** ### 图层 ID */
+  /**
+   * ### 图层 ID
+   * @example 'A:MD:MENGDE'
+   */
   id: string
 
   /** ### 可选设置 */
@@ -63,13 +66,13 @@ export interface TileLayerFactoryOptions {
 export interface TilesetLayerProps {
   /** 图层数据 */
   data: ResolvedTileset | null
-  /** @debug 是否显示 tile 的原始图层 */
+  /** 是否显示 tile 的原始图层 */
   showTileLayer?: boolean
-  /** @debug 是否显示边界框 */
+  /** 是否显示边界框 */
   showBounds?: boolean
-  /** @debug 是否显示原点 */
+  /** 是否显示原点 */
   showOrigin?: boolean
-  /** @debug 是否显示瓦片信息 */
+  /** 是否显示瓦片信息 */
   showTileInfo?: boolean
   /** 限制缓存使用的内存大小，单位为 MB @default 512 */
   maxCacheMemory?: number
