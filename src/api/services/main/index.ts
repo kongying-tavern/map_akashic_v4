@@ -20,9 +20,6 @@ export const alovaInstance = createAlova({
     if (!token) {
       throw new Error('token is not found')
     }
-    if (token.expiresAt < Date.now()) {
-      throw new Error('token is expired')
-    }
     method.config.headers['Authorization'] = `Bearer ${token}`
     console.log('[headers]', method.config.headers)
     return method
