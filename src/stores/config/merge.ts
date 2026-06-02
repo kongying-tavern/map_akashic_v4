@@ -1,4 +1,4 @@
-import type { ConfigTileLayer, MapConfig } from '@/api'
+import type { AppConfig, ConfigTileset } from '@/api/services/config/schema'
 import type { ResolvedTileset } from '@/feature/genshin-map/types'
 
 // 辅助函数：判断是否为「纯对象」（排除数组、null、特殊对象）
@@ -36,24 +36,7 @@ const deepMerge = (a: unknown, b: unknown): unknown => {
   return a
 }
 
-const mergeConfigs = (configsList: ConfigTileLayer[]) => {
-  console.log('configsList', configsList)
-  const tree: Record<string, ConfigTileLayer> = {}
-  const { length } = configsList
-  for (let i = 0; i < length; i++) {
-    const current = configsList[i]
-    for (const [key, value] of Object.entries(current)) {
-      if (!tree[key]) {
-        tree[key] = value
-        continue
-      }
-      deepMerge(tree[key], value)
-    }
-  }
-  return tree
-}
-
-const decodeExtend = (config: Record<string, ConfigTileLayer>) => {
+const decodeExtend = (config: Record<string, ConfigTileset>) => {
   const result: ResolvedTileset[] = []
   for (const [areaCode, node] of Object.entries(config)) {
     if (node.extend) {
@@ -72,15 +55,17 @@ const decodeExtend = (config: Record<string, ConfigTileLayer>) => {
   return result
 }
 
+/** 检查是否为形如 C:MD、A:MD:MENGDE 的地区 id */
 const TILE_ID_REG = /^[AC]:[A-Z]+/
 
 /**
  * 主函数：基于索引树处理 tiles/tilesNeigui 继承
  */
-export const parseTilesConfigs = (dadianConfig: MapConfig) => {
-  console.log('dadianConfig', dadianConfig)
-  const tree = mergeConfigs([dadianConfig.tiles ?? {}, dadianConfig.tilesNeigui ?? {}])
+export const parseTilesConfigs = (appConfig: AppConfig) => {
+  const tree = appConfig.tiles ?? {}
+  const disgardSet = new Set(appConfig.webMap?.blockArea)
   return decodeExtend(tree).filter((config) => {
+    if (disgardSet.has(config.id)) return false
     const { id } = config
     return TILE_ID_REG.test(id)
   })
