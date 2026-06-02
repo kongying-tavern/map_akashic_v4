@@ -5,7 +5,7 @@ import { StorageKey } from '@/shared/enums/storage-key'
 export const useUrlSearchStore = defineStore('url-search', () => {
   const params = useUrlSearchParams('history')
 
-  const locale = useLocalStorage<I18nType.Locale>(StorageKey.LOCALE, 'zh')
+  const locale = useLocalStorage<I18nType.Locale>(StorageKey.LOCALE, 'zh-CN')
 
   const sider = computed<string | null>({
     get: () => {

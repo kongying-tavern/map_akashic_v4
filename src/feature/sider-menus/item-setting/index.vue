@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { SettingsKey } from '@/database/schemas/settings'
-import { themeSchema } from '@/database/schemas/settings'
-import { useAsyncSettingValue } from '@/hooks/use-async-setting-value'
+import { useDark } from '@vueuse/core'
 import WinuiSegmented from '@/ui/winui/winui-segmented.vue'
 
-const { modelValue: theme } = useAsyncSettingValue(SettingsKey.THEME, themeSchema, 'auto')
-watch(theme, () => {
-  document.documentElement.classList.toggle('light', theme.value === 'light')
-  document.documentElement.classList.toggle('dark', theme.value === 'dark')
-  document.documentElement.classList.toggle('auto', theme.value === 'auto')
+const isDark = useDark({})
+
+const theme = computed({
+  get: () => {
+    return isDark ? 'dark' : 'light'
+  },
+  set: (type) => {
+    isDark.value = type === 'dark'
+  },
 })
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
