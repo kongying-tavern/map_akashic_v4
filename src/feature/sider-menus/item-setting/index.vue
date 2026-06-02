@@ -3,13 +3,20 @@ import { useDark } from '@vueuse/core'
 import WinuiSegmented from '@/ui/winui/winui-segmented.vue'
 
 const isDark = useDark({})
+watch(
+  isDark,
+  (dark) => {
+    document.documentElement.classList.toggle('dark', dark)
+  },
+  { immediate: true },
+)
 
 const theme = computed({
   get: () => {
-    return isDark ? 'dark' : 'light'
+    return isDark.value ? 'dark' : 'light'
   },
-  set: (type) => {
-    isDark.value = type === 'dark'
+  set: (themeType) => {
+    isDark.value = themeType === 'dark'
   },
 })
 

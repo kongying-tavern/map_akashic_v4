@@ -113,14 +113,15 @@ const toggleMenu = (key: MENU_KEYS) => {
       :class="[
         'sider-toolbar-right',
         'absolute top-0 left-[var(--tap-width)]',
-        'w-80 h-full',
+        'w-80 h-full flex flex-col',
         'bg-[--bg-level-2] border-r-1 border-[--border-color]',
         collapsed ? 'is-collapsed' : 'pointer-events-auto',
         sider ? 'is-selected' : '',
       ]"
     >
-      <div class="h-12 flex items-center px-2 gap-2 select-none">
-        {{ menuConfigMap[sider].label }}
+      <div class="h-17 px-4 gap-2 select-none shrink-0 bg-[--bg-level-1]">
+        <div class="text-lg leading-6 font-bold mt-3">{{ menuConfigMap[sider].label }}</div>
+        <div>description</div>
       </div>
       <Suspense>
         <template #fallback> Loading... </template>

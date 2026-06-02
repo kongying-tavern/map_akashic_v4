@@ -37,10 +37,7 @@ onMounted(() => {
       dragMode: 'pan',
       dragRotate: false,
       inertia: 500,
-      scrollZoom: {
-        smooth: true,
-        speed: 0.01,
-      },
+      scrollZoom: true,
       touchRotate: false,
     },
     initialViewState: {

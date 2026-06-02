@@ -8,10 +8,10 @@ const query = useRouteQuery()
 const configStore = useConfigStore()
 
 const tile = computed(() => {
-  // if (!query.area) {
-  //   return
-  // }
-  return configStore.tiles.get('A:MD:XUESHAN')
+  if (!query.area) {
+    return configStore.tiles.get('A:MD:MENGDE')
+  }
+  return configStore.tiles.get(query.area)
 })
 </script>
 
