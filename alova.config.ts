@@ -10,7 +10,7 @@ export default defineConfig(() => {
   if (env.VITE_SERVICE_MAIN_OPENAPI_URL) {
     generator.push({
       input: env.VITE_SERVICE_MAIN_OPENAPI_URL,
-      output: path.resolve(__dirname, 'src/api/services/main2'),
+      output: path.resolve(__dirname, 'src/api/services/main'),
     })
   }
 
