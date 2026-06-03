@@ -1,10 +1,10 @@
 import * as z from 'zod'
 
-export const loginRequestSchema = z.object({
-  username: z.string().meta({ description: '账号' }),
-  password: z.string().meta({ description: '密码' }),
+export const loginResponseSchema = z.object({
+  access_token: z.string().meta({ description: '接口 token' }),
+  token_type: z.string().meta({ description: 'token 前缀' }),
+  expires_in: z.int().meta({ description: '接口 token 有效时间' }),
+  scope: z.string().meta({ description: '可访问范围' }),
+  jti: z.string().meta({ description: "What's that mean?" }),
 })
-export type LoginRequest = z.infer<typeof loginRequestSchema>
-
-export const loginResponseSchema = z.object({})
-export type LoginResponse = z.infer<typeof loginRequestSchema>
+export type LoginResponse = z.infer<typeof loginResponseSchema>

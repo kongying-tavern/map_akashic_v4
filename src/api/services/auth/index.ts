@@ -1,5 +1,5 @@
-import { login } from './apiDefinitions'
+import { visitorLogin } from './apiDefinitions'
 
 export default {
-  login,
+  visitorLogin,
 }

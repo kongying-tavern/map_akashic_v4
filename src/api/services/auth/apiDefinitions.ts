@@ -1,13 +1,11 @@
 import { alovaInstance } from './alovaInstance'
-import type { LoginRequest, LoginResponse } from './schema'
+import type { LoginResponse } from './schema'
 
-export const login = async (data: LoginRequest) => {
+/** 访客授权 */
+export const visitorLogin = () => {
   return alovaInstance.Post<LoginResponse>(
     '/oauth/token',
-    {
-      ...data,
-      grant_type: 'password',
-    },
+    {},
     {
       params: {
         scope: 'all',
