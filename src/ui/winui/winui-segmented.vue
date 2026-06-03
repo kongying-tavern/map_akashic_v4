@@ -121,6 +121,7 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 .winui-segmented__item[data-checked='true'] {
+  font-weight: bold;
   background: var(--winui-segmented-item-checked);
 }
 
