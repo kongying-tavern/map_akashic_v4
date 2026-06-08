@@ -22,7 +22,10 @@ const isPlainObject = (obj: unknown): obj is Record<string, unknown> => {
 const deepMerge = (a: unknown, b: unknown): unknown => {
   // 情况1：不是两个纯对象 → 直接用 b 覆盖 a
   if (!isPlainObject(a) || !isPlainObject(b)) {
-    return b
+    if (a !== undefined) {
+      return a
+    }
+    return JSON.parse(JSON.stringify(b))
   }
 
   // 遍历 b 的所有自有属性（避免遍历原型链属性）

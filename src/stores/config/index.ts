@@ -25,7 +25,7 @@ export const useConfigStore = defineStore('config', () => {
       )
     } catch (error) {
       console.error(error)
-      return new Map()
+      return new Map<string, ResolvedTileset>()
     }
   })
 
