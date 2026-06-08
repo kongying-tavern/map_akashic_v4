@@ -3,6 +3,7 @@ import { createClientTokenAuthentication } from 'alova/client'
 import fetchAdapter from 'alova/fetch'
 import VueHook from 'alova/vue'
 import { useUserStore } from '@/stores'
+import { createKvCache } from '../../utils/kv-cache'
 import auth from '../auth'
 import { createApis, withConfigType } from './createApis'
 import type * as ApiTypes from './globals'
@@ -17,12 +18,15 @@ export const alovaInstance = createAlova({
   statesHook: VueHook,
   cacheFor: {
     GET: {
-      expire: 10 * 60 * 1000, // cache 10 minutes
+      mode: 'restore',
+      expire: 30 * 60 * 1000, // cache 30 minutes
     },
     POST: {
-      expire: 10 * 60 * 1000, // cache 10 minutes
+      mode: 'restore',
+      expire: 30 * 60 * 1000, // cache 30 minutes
     },
   },
+  l2Cache: createKvCache('main-service'),
   requestAdapter: fetchAdapter(),
   beforeRequest: onAuthRequired(async (method) => {
     const userStore = useUserStore()
