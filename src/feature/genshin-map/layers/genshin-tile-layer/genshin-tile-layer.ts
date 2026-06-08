@@ -61,7 +61,10 @@ const createTileLayer = (
     maxZoom: asFallback ? -3 : 0,
     tileSize: 256,
     extent: [xmin, ymin, xmax, ymax],
-    refinementStrategy: 'never',
+    // refinementStrategy: 'never',
+    refinementStrategy: 'best-available',
+    maxCacheByteSize: Number.MAX_SAFE_INTEGER,
+    maxCacheSize: Number.MAX_SAFE_INTEGER,
     maxRequests: navigator.hardwareConcurrency,
     getTileData: async ({ index, signal }) => {
       if (signal?.aborted) {
@@ -119,7 +122,7 @@ export class GenshinTileLayer extends CompositeLayer<GenshinTileLayerProps> {
 
   override renderLayers() {
     return [
-      createTileLayer(this.props.data, true),
+      // createTileLayer(this.props.data, true),
       createTileLayer(this.props.data),
     ] satisfies ReturnType<CompositeLayer['renderLayers']>
   }

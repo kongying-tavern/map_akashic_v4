@@ -5,52 +5,55 @@ defineProps<{
   title?: string
 }>()
 
-const open = defineModel<boolean>('open')
+const open = defineModel<boolean>('open', {
+  required: false,
+  default: false,
+})
 </script>
 
 <template>
   <CollapsibleRoot
     v-model:open="open"
-    :default-open="false"
     :class="[
-      'filter-item outline-2 outline-transparent',
-      'rounded-lg bg-[--gl-1] select-none overflow-hidden border border-[--color]',
+      'filter-item outline-3 outline-transparent',
+      'rounded-lg bg-[--gl-1] select-none overflow-hidden border border-[--border-color]',
+      open ? 'is-opened' : '',
     ]"
   >
-    <!-- 标题栏 -->
     <CollapsibleTrigger
-      :class="[
-        'filter-item-trigger w-full h-16 flex cursor-pointer text-sm text-[--gl-7] transition-colors-150',
-      ]"
+      :class="['filter-item-trigger w-full flex flex-col cursor-pointer text-sm text-[--gl-7]']"
     >
-      <div class="flex-1 min-w-0 text-left truncate font-medium">
-        {{ title }}
-        <div v-if="$slots.summary" class="shrink-0 text-xs text-[--gl-5] truncate max-w-40%">
-          <slot name="summary" />
+      <!-- 标题栏 -->
+      <div class="w-full shrink-0 h-9 flex items-center truncate">
+        <slot name="icon" />
+        <div class="h-full flex-1 text-left leading-9">
+          {{ title }}
+        </div>
+        <!-- 折叠按钮 -->
+        <div class="h-full aspect-square grid place-content-center">
+          <svg
+            class="shrink-0 size-4 text-[--gl-5]"
+            :class="[open ? 'rotate-180' : '']"
+            viewBox="0 0 16 16"
+            fill="none"
+          >
+            <path
+              d="M4 6L8 10L12 6"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
         </div>
       </div>
-      <div class="h-12 p-2">
-        <svg
-          class="filter-item-chevron shrink-0 size-4 text-[--gl-5]"
-          viewBox="0 0 16 16"
-          fill="none"
-        >
-          <path
-            d="M4 6L8 10L12 6"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </div>
+
+      <!-- 折叠信息 -->
+      <slot name="summary" :open="open" />
     </CollapsibleTrigger>
 
     <!-- 可折叠内容 -->
-    <CollapsibleContent
-      force-mount
-      class="grid ease-in-out data-[state=closed]:grid-rows-[0fr] data-[state=open]:grid-rows-[1fr]"
-    >
+    <CollapsibleContent>
       <div class="overflow-hidden">
         <div class="border-t-(--gl-4) text-sm text-(--gl-6)">
           <slot />
@@ -61,18 +64,14 @@ const open = defineModel<boolean>('open')
 </template>
 
 <style lang="css" scoped>
-@property --filter-chevron-rotate {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
 .filter-item {
-  --color: var(--gl-4);
+  --border-color: var(--gl-4);
 }
 .filter-item:has(.filter-item-trigger:hover) {
-  --color: var(--color-brand-5);
-  outline-color: var(--color-brand-3);
+  outline-color: color-mix(in oklch, var(--color-brand-3), transparent 50%);
+}
+.filter-item:has(.hover-clip:hover) {
+  outline-color: transparent;
 }
 .filter-item:has(.filter-item-trigger:active) {
   outline-width: 1px;
@@ -82,16 +81,7 @@ const open = defineModel<boolean>('open')
   --uno: hover: bg-light-dark(#00000008, #ffffff08);
 }
 
-.filter-item-chevron {
-  --filter-chevron-rotate: 0deg;
-  transform: rotate(var(--filter-chevron-rotate));
-}
-
 [data-state='open'] > .filter-item-trigger {
-  color: var(--color-brand-6);
-}
-
-[data-state='open'] > .filter-item-trigger .filter-item-chevron {
-  --filter-chevron-rotate: -180deg;
+  color: var(--border-color-brand-6);
 }
 </style>

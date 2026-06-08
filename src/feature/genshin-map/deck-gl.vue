@@ -52,12 +52,10 @@ onMounted(() => {
       return newViewState
     },
   })
-  Reflect.set(globalThis, 'deck', deck)
 
   deckInstanceRef.value = deck
 
   onUnmounted(() => {
-    Reflect.set(globalThis, 'deck', null)
     deck.finalize()
     deckInstanceRef.value = null
   })
