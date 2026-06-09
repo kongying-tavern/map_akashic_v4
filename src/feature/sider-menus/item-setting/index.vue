@@ -1,7 +1,39 @@
 <script setup lang="ts">
 import { useDark } from '@vueuse/core'
+import { converter, formatHex, parse, clampRgb } from 'culori'
 import WinuiSegmented from '@/ui/winui/winui-segmented.vue'
 
+// ─── culori 转换器 ─────────────────────────────
+const toOklch = converter('oklch')
+
+// ─── 基础工具 ───────────────────────────────────
+const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
+const normalizeHue = (h: number) => ((h % 360) + 360) % 360
+
+// ─── oklch ↔ hex 转换 ─────────────────────────
+const oklchToHex = (L: number, C: number, H: number) => {
+  const color = { mode: 'oklch' as const, l: L, c: C, h: H }
+  return formatHex(clampRgb(color))
+}
+
+const hexToOklch = (hex: string) => {
+  const parsed = parse(hex)
+  if (!parsed) return null
+  const oklch = toOklch(parsed)
+  if (!oklch || oklch.l === undefined) return null
+  return { L: oklch.l, C: oklch.c ?? 0, H: oklch.h ?? 0 }
+}
+
+// ─── 解析 CSS oklch() 字符串 ───────────────────
+const parseOklch = (str: string) => {
+  const parsed = parse(str)
+  if (!parsed) return null
+  const oklch = toOklch(parsed)
+  if (!oklch || oklch.l === undefined) return null
+  return { L: oklch.l, C: oklch.c ?? 0, H: oklch.h ?? 0 }
+}
+
+// ─── 主题切换 ──────────────────────────────────
 const isDark = useDark({})
 watch(
   isDark,
@@ -12,102 +44,10 @@ watch(
 )
 
 const theme = computed({
-  get: () => {
-    return isDark.value ? 'dark' : 'light'
+  get: () => (isDark.value ? 'dark' : 'light'),
+  set: (v) => {
+    isDark.value = v === 'dark'
   },
-  set: (themeType) => {
-    isDark.value = themeType === 'dark'
-  },
-})
-
-const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
-
-const normalizeHue = (h: number) => {
-  const x = h % 360
-  return x < 0 ? x + 360 : x
-}
-
-const hexToRgb01 = (hex: string) => {
-  const v = hex.trim().replace(/^#/, '')
-  if (!/^[0-9a-fA-F]{6}$/.test(v)) return null
-  const r = parseInt(v.slice(0, 2), 16) / 255
-  const g = parseInt(v.slice(2, 4), 16) / 255
-  const b = parseInt(v.slice(4, 6), 16) / 255
-  return { r, g, b }
-}
-
-const rgb01ToHue = ({ r, g, b }: { r: number; g: number; b: number }) => {
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  const d = max - min
-  if (d === 0) return 0
-  let h: number
-  switch (max) {
-    case r:
-      h = ((g - b) / d) % 6
-      break
-    case g:
-      h = (b - r) / d + 2
-      break
-    default:
-      h = (r - g) / d + 4
-      break
-  }
-  return normalizeHue(h * 60)
-}
-
-// 固定 S/L 仅用于给原生 color input 展示；实际存储仅 hue。
-const hueToHex = (hue: number) => {
-  const h = normalizeHue(hue) / 60
-  const c = 1 // S=100%, L=50% -> chroma = 1
-  const x = c * (1 - Math.abs((h % 2) - 1))
-  const [r1, g1, b1] =
-    h < 1
-      ? [c, x, 0]
-      : h < 2
-        ? [x, c, 0]
-        : h < 3
-          ? [0, c, x]
-          : h < 4
-            ? [0, x, c]
-            : h < 5
-              ? [x, 0, c]
-              : [c, 0, x]
-  const toHex = (v: number) =>
-    Math.round(clamp(v, 0, 1) * 255)
-      .toString(16)
-      .padStart(2, '0')
-  return `#${toHex(r1)}${toHex(g1)}${toHex(b1)}`
-}
-
-const brandHue = ref<number>(48)
-const brandHex = computed(() => hueToHex(brandHue.value))
-
-const onBrandInput = (e: Event) => {
-  const next = (e.target as HTMLInputElement | null)?.value
-  if (!next) return
-  const rgb = hexToRgb01(next)
-  if (!rgb) return
-  brandHue.value = rgb01ToHue(rgb)
-}
-
-const syncBrandToRoot = () => {
-  document.body.style.setProperty('--brand', String(Math.round(normalizeHue(brandHue.value))))
-}
-
-const loadBrandFromRoot = () => {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim()
-  const n = Number.parseFloat(raw)
-  if (Number.isFinite(n)) brandHue.value = normalizeHue(n)
-}
-
-onMounted(() => {
-  loadBrandFromRoot()
-  syncBrandToRoot()
-})
-
-watch(brandHue, () => {
-  syncBrandToRoot()
 })
 
 const themeOptions = [
@@ -115,6 +55,82 @@ const themeOptions = [
   { label: '浅色', value: 'light' },
   { label: '深色', value: 'dark' },
 ] as const
+
+// ─── 品牌色状态 (oklch 三通道) ─────────────────
+const brandL = ref(0.6)
+const brandC = ref(0.1)
+const brandH = ref(48)
+
+const brandHex = computed(() => oklchToHex(brandL.value, brandC.value, brandH.value))
+
+const onBrandInput = (e: Event) => {
+  const next = (e.target as HTMLInputElement | null)?.value
+  if (!next) return
+  const oklch = hexToOklch(next)
+  if (!oklch) return
+  brandL.value = oklch.L
+  brandC.value = oklch.C
+  brandH.value = oklch.H
+}
+
+// ─── 色阶生成 ─────────────────────────────────
+/** 色阶参数表：每级定义浅色/深色模式的目标亮度与色度比例 */
+const PALETTE_TABLE = [
+  { lightL: 0.96, darkL: 0.2, lightCR: 0.2, darkCR: 0.4 },
+  { lightL: 0.9, darkL: 0.28, lightCR: 0.4, darkCR: 0.6 },
+  { lightL: 0.82, darkL: 0.36, lightCR: 0.7, darkCR: 0.8 },
+  { lightL: 0.74, darkL: 0.44, lightCR: 0.9, darkCR: 1.0 },
+  { lightL: 0.64, darkL: 0.52, lightCR: 1.1, darkCR: 1.2 },
+  { lightL: 0.54, darkL: 0.6, lightCR: 1.1, darkCR: 1.4 },
+  { lightL: 0.46, darkL: 0.72, lightCR: 1.2, darkCR: 1.1 },
+  { lightL: 0.35, darkL: 0.84, lightCR: 1.0, darkCR: 0.8 },
+  { lightL: 0.24, darkL: 0.94, lightCR: 0.8, darkCR: 0.4 },
+] as const
+
+const MAX_CHROMA = 0.4
+
+const generatePalette = (C: number, H: number) => {
+  const root = document.body.style
+  for (let i = 0; i < PALETTE_TABLE.length; i++) {
+    const lv = PALETTE_TABLE[i]
+    const lightC = clamp(C * lv.lightCR, 0, MAX_CHROMA)
+    const darkC = clamp(C * lv.darkCR, 0, MAX_CHROMA)
+    const light = `oklch(${(lv.lightL * 100).toFixed(0)}% ${lightC.toFixed(4)} ${H.toFixed(1)})`
+    const dark = `oklch(${(lv.darkL * 100).toFixed(0)}% ${darkC.toFixed(4)} ${H.toFixed(1)})`
+    root.setProperty(`--color-brand-${i + 1}`, `light-dark(${light}, ${dark})`)
+  }
+}
+
+// ─── 同步到 CSS 变量 ──────────────────────────
+const syncBrandToRoot = () => {
+  const L = brandL.value
+  const C = brandC.value
+  const H = normalizeHue(brandH.value)
+  document.body.style.setProperty(
+    '--brand',
+    `oklch(${(L * 100).toFixed(1)}% ${C.toFixed(4)} ${H.toFixed(1)})`,
+  )
+  generatePalette(C, H)
+}
+
+const loadBrandFromRoot = () => {
+  const raw = getComputedStyle(document.body).getPropertyValue('--brand').trim()
+  const oklch = parseOklch(raw)
+  if (oklch) {
+    brandL.value = oklch.L
+    brandC.value = oklch.C
+    brandH.value = normalizeHue(oklch.H)
+  }
+}
+
+onMounted(() => {
+  loadBrandFromRoot()
+  syncBrandToRoot()
+})
+
+watch([brandL, brandC, brandH], () => {
+  syncBrandToRoot()
+})
 </script>
 
 <template>
@@ -127,7 +143,10 @@ const themeOptions = [
         :value="brandHex"
         @input="onBrandInput"
       />
-      <div class="text-sm opacity-70">H: {{ Math.round(brandHue) }}</div>
+      <div class="text-sm opacity-70">
+        L: {{ (brandL * 100).toFixed(0) }}% C: {{ brandC.toFixed(2) }} H:
+        {{ Math.round(brandH) }}
+      </div>
     </div>
     <div class="mx-2">颜色模式</div>
     <WinuiSegmented class="m-2" v-model="theme" :options="[...themeOptions]" />
