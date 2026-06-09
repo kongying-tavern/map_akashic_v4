@@ -152,12 +152,11 @@ export class GenshinTileLayer extends CompositeLayer<GenshinTileLayerProps> {
   }
 
   applyDeck(deck: GenshinDeck, oldViewState: OrthographicViewState) {
-    console.log('deck', deck.props.layers)
     deck.setProps({
       controller: {
         dragMode: 'pan',
         dragRotate: false,
-        inertia: 1500,
+        inertia: 500,
         touchRotate: false,
         maxBounds: this.props.bounds,
       },
