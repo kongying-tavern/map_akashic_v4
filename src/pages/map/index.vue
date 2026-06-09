@@ -7,7 +7,7 @@ const query = useRouteQuery()
 
 const configStore = useConfigStore()
 
-const tile = computed(() => {
+const tilesetConfig = computed(() => {
   if (!query.value.area) {
     return configStore.tiles.get('A:MD:MENGDE')
   }
@@ -16,5 +16,5 @@ const tile = computed(() => {
 </script>
 
 <template>
-  <GenshinMap :config="tile" />
+  <GenshinMap v-if="tilesetConfig" :tileset="tilesetConfig" />
 </template>

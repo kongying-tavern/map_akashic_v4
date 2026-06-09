@@ -57,12 +57,6 @@ export interface TileSublayerProps {
   url: string
 }
 
-/** TileLayer 工厂函数配置 */
-export interface TileLayerFactoryOptions {
-  debug?: boolean
-  cacheFunc?: (url: string, signal?: AbortSignal) => Promise<ImageBitmap | null>
-}
-
 export interface TilesetLayerProps {
   /** 图层数据 */
   data: ResolvedTileset | null
@@ -97,20 +91,4 @@ export type TileGridData = {
   y: number
   z: number
   path: [number, number][]
-}
-
-export type TileExtent = {
-  xmin: number
-  ymin: number
-  xmax: number
-  ymax: number
-}
-
-export type ChildTileSlot = {
-  childX: number
-  childY: number
-  childKey: string
-  dx: number
-  dy: number
-  dSize: number
 }

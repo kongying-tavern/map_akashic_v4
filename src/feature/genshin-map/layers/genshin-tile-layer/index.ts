@@ -1,6 +1,8 @@
 import { CompositeLayer, TileLayer, BitmapLayer } from 'deck.gl'
+import type { OrthographicViewState } from 'deck.gl'
 import Api from '@/api'
-import { ResolvedTileset } from '../../types'
+import type { GenshinDeck } from '../../core/genshin-deck'
+import type { ResolvedTileset } from '../../types'
 
 /** 符合 Genshin Tileset 格式的资源地址 */
 const BASE_URL = import.meta.env.VITE_SERVICE_RESOURCE_URL
@@ -10,6 +12,10 @@ const ZOOM_MAPPING = 13
 export interface GenshinTileLayerProps {
   data: ResolvedTileset
   bounds: [min: [number, number], max: [number, number]]
+  initViewState: {
+    target: [number, number]
+    zoom: number
+  }
 }
 
 interface TileData {
@@ -41,6 +47,15 @@ const getExtent = (data: ResolvedTileset): TileExtent => {
   }
 }
 
+const getInitTarget = (data: ResolvedTileset): [number, number] => {
+  if (!data.settings?.center) {
+    return [0, 0]
+  }
+  const [x, y] = data.settings.center
+  const [ox, oy] = data.center
+  return [x + ox, y + oy]
+}
+
 /** 计算 tile 块的 url */
 const getTileUrl = (data: ResolvedTileset, index: TileIndex): string => {
   const { x, y, z } = index
@@ -48,23 +63,19 @@ const getTileUrl = (data: ResolvedTileset, index: TileIndex): string => {
   return url
 }
 
-const createTileLayer = (
-  tileset: ResolvedTileset,
-  /** 该图层是否作为 fallback 使用 */
-  asFallback = false,
-) => {
+const createTileLayer = (tileset: ResolvedTileset) => {
   const { xmax, xmin, ymax, ymin } = getExtent(tileset)
-  return new TileLayer<TileData | null>({
-    id: `TileLayer(${tileset.pathId}${asFallback ? '.fallback' : ''})`,
+
+  const tileLayer = new TileLayer<TileData | null>({
+    id: `TileLayer(${tileset.pathId})`,
     data: null,
     minZoom: -3,
-    maxZoom: asFallback ? -3 : 0,
+    maxZoom: 0,
     tileSize: 256,
     extent: [xmin, ymin, xmax, ymax],
-    // refinementStrategy: 'never',
     refinementStrategy: 'best-available',
     maxCacheByteSize: Number.MAX_SAFE_INTEGER,
-    maxCacheSize: Number.MAX_SAFE_INTEGER,
+    maxCacheSize: 512 * 2 ** 20, // 512 MiB
     maxRequests: navigator.hardwareConcurrency,
     getTileData: async ({ index, signal }) => {
       if (signal?.aborted) {
@@ -72,14 +83,17 @@ const createTileLayer = (
       }
       try {
         const url = getTileUrl(tileset, index)
-        const bmp = await Api.assets.getTile({
-          pathId: tileset.pathId,
-          x: index.x,
-          y: index.y,
-          z: index.z,
-          zMapping: ZOOM_MAPPING,
-          extension: tileset.extension,
-        })
+        const bmp = await Api.assets.getTile(
+          {
+            pathId: tileset.pathId,
+            x: index.x,
+            y: index.y,
+            z: index.z,
+            zMapping: ZOOM_MAPPING,
+            extension: tileset.extension,
+          },
+          signal,
+        )
         return {
           byteLength: bmp.width * bmp.height * 4,
           image: bmp,
@@ -98,32 +112,65 @@ const createTileLayer = (
         1: { 0: xmax, 1: ymax },
       } = tile.boundingBox
       return new BitmapLayer({
-        id: `BitmapLayer(${data.url}${asFallback ? '.fallback' : ''})`,
+        id: `BitmapLayer(${data.url})`,
         image: data.image,
         bounds: [xmin, ymax, xmax, ymin],
       })
     },
   })
+
+  return tileLayer
 }
 
 export class GenshinTileLayer extends CompositeLayer<GenshinTileLayerProps> {
   static layerName = 'GenshinTileLayer'
 
+  static #instance: GenshinTileLayer | null = null
+
   constructor(data: ResolvedTileset) {
     const { xmax, xmin, ymax, ymin } = getExtent(data)
     super({
+      id: 'GenshinTileLayer',
       data,
       bounds: [
         [xmin, ymin],
         [xmax, ymax],
       ],
+      initViewState: {
+        target: getInitTarget(data),
+        zoom: data.settings?.zoom ?? -1,
+      },
     })
+    if (GenshinTileLayer.#instance) {
+      GenshinTileLayer.#instance._finalize()
+    }
+    GenshinTileLayer.#instance = this
   }
 
   override renderLayers() {
-    return [
-      // createTileLayer(this.props.data, true),
-      createTileLayer(this.props.data),
-    ] satisfies ReturnType<CompositeLayer['renderLayers']>
+    return createTileLayer(this.props.data)
+  }
+
+  applyDeck(deck: GenshinDeck, oldViewState: OrthographicViewState) {
+    console.log('deck', deck.props.layers)
+    deck.setProps({
+      controller: {
+        dragMode: 'pan',
+        dragRotate: false,
+        inertia: 1500,
+        touchRotate: false,
+        maxBounds: this.props.bounds,
+      },
+      initialViewState: oldViewState,
+      layers: [this],
+    })
+    // 分两次调用以便触发视口过渡
+    deck.setProps({
+      initialViewState: {
+        ...this.props.initViewState,
+        transitionEasing: (t) => 1 - (1 - t) ** 4,
+        transitionDuration: 500,
+      },
+    })
   }
 }

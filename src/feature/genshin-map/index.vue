@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import { SiderToolbar } from './components'
-import ZoomController from './controllers/zoom-controller.vue'
-import DeckGl from './deck-gl.vue'
-import GenshinTileLayer from './layers/genshin-tile-layer/index.vue'
-import { ResolvedTileset } from './types'
+import SiderToolbar from './components/sider-toolbar/index.vue'
+import { useGenshinDeck, type GenshinMapProps } from './hooks/use-genshin-deck'
 
-const props = defineProps<{
-  config?: ResolvedTileset
-}>()
+const props = defineProps<GenshinMapProps>()
+
+const canvasRef = useTemplateRef('canvas')
+useGenshinDeck(canvasRef, props)
 </script>
 
 <template>
-  <deck-gl>
-    <genshin-tile-layer v-if="props.config" :data="props.config" />
-
-    <div class="absolute inset-0 pointer-events-none">
-      <zoom-controller />
-      <sider-toolbar />
-    </div>
-  </deck-gl>
+  <div class="fixed w-100dvw h-100dvh overflow-hidden bg-black">
+    <canvas ref="canvas" class="absolute inset-0" />
+    <SiderToolbar />
+  </div>
 </template>
