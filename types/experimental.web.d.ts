@@ -9,8 +9,22 @@ interface ShowOpenFilePicker {
   (): Promise<FileSystemFileHandle>
 }
 
+type TaskPriority = 'user-blocking' | 'user-visible' | 'background'
+
+interface PostTaskOptions {
+  priority?: TaskPriority
+  signal?: AbortSignal
+  delay?: number
+}
+
+interface Scheduler {
+  postTask<T>(callback: () => T, options?: PostTaskOptions): Promise<T>
+  yield(): Promise<void>
+}
+
 declare global {
   interface Window {
     showOpenFilePicker?: ShowOpenFilePicker
+    scheduler?: Scheduler
   }
 }
