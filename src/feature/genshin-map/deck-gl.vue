@@ -25,10 +25,8 @@ provide(deckCanvasKey, canvasRef)
 const deckInstanceRef = shallowRef<Deck<OrthographicView> | null>(null)
 provide(deckInstanceKey, deckInstanceRef)
 
-onMounted(() => {
-  const canvas = canvasRef.value!
-
-  const deck = new Deck<OrthographicView>({
+const createDeckInstance = (canvas: HTMLCanvasElement): Deck<OrthographicView> => {
+  return new Deck<OrthographicView>({
     canvas,
     views: new OrthographicView({
       controller: OrthographicController,
@@ -52,11 +50,27 @@ onMounted(() => {
       return newViewState
     },
   })
+}
 
-  deckInstanceRef.value = deck
+onMounted(() => {
+  const canvas = canvasRef.value!
+  let currentDeck = createDeckInstance(canvas)
+
+  canvas.addEventListener('contextlost', (ev) => {
+    ev.preventDefault()
+    currentDeck.finalize()
+  })
+
+  canvas.addEventListener('contextrestored', (ev) => {
+    ev.preventDefault()
+    currentDeck = createDeckInstance(canvas)
+    deckInstanceRef.value = currentDeck
+  })
+
+  deckInstanceRef.value = currentDeck
 
   onUnmounted(() => {
-    deck.finalize()
+    currentDeck.finalize()
     deckInstanceRef.value = null
   })
 })
