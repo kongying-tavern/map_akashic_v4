@@ -109,7 +109,9 @@ const toggleMenu = (key: MENU_KEYS) => {
 
     <!-- 右侧拓展面板 -->
     <div
-      v-if="sider"
+      v-for="(menu, key) in menuConfigMap"
+      v-show="key === sider"
+      :key="key"
       :class="[
         'sider-toolbar-right',
         'absolute top-0 left-[var(--tap-width)]',
@@ -120,12 +122,12 @@ const toggleMenu = (key: MENU_KEYS) => {
       ]"
     >
       <div class="h-17 px-4 gap-2 select-none shrink-0 bg-[--bg-level-1]">
-        <div class="text-lg leading-6 font-bold mt-3">{{ menuConfigMap[sider].label }}</div>
+        <div class="text-lg leading-6 font-bold mt-3">{{ menu.label }}</div>
         <div>description</div>
       </div>
       <Suspense>
         <template #fallback> Loading... </template>
-        <component :is="menuConfigMap[sider].component" />
+        <component :is="menu.component" />
       </Suspense>
     </div>
   </div>
