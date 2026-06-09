@@ -28,14 +28,17 @@ const getUrlMeta = (url: string) => {
 }
 
 /** 获取 tile 图片资源 */
-export const getTile = async (query: {
-  pathId: string
-  x: number
-  y: number
-  z: number
-  zMapping?: number
-  extension?: string
-}) => {
+export const getTile = async (
+  query: {
+    pathId: string
+    x: number
+    y: number
+    z: number
+    zMapping?: number
+    extension?: string
+  },
+  signal?: AbortSignal,
+) => {
   const { pathId, x, y, z, zMapping = 0, extension = 'png' } = query
   const url = `${BASE_URL}/tiles_${pathId}/${z + zMapping}/${x}_${y}.${extension}`
 
@@ -65,6 +68,7 @@ export const getTile = async (query: {
   const res = await fetch(url, {
     mode: 'cors',
     method: 'GET',
+    signal,
   })
   // 请求失败直接不走缓存
   if (!res.ok) throw new Error(res.statusText || '请求失败')
