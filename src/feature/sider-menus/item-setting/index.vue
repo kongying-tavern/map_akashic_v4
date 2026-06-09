@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useDark } from '@vueuse/core'
-import { converter, formatHex, parse, clampRgb } from 'culori'
+import { converter, parse } from 'culori'
 import WinuiSegmented from '@/ui/winui/winui-segmented.vue'
+import { OklchColorPicker } from './oklch-color-picker'
 
 // ─── culori 转换器 ─────────────────────────────
 const toOklch = converter('oklch')
@@ -9,20 +10,6 @@ const toOklch = converter('oklch')
 // ─── 基础工具 ───────────────────────────────────
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 const normalizeHue = (h: number) => ((h % 360) + 360) % 360
-
-// ─── oklch ↔ hex 转换 ─────────────────────────
-const oklchToHex = (L: number, C: number, H: number) => {
-  const color = { mode: 'oklch' as const, l: L, c: C, h: H }
-  return formatHex(clampRgb(color))
-}
-
-const hexToOklch = (hex: string) => {
-  const parsed = parse(hex)
-  if (!parsed) return null
-  const oklch = toOklch(parsed)
-  if (!oklch || oklch.l === undefined) return null
-  return { L: oklch.l, C: oklch.c ?? 0, H: oklch.h ?? 0 }
-}
 
 // ─── 解析 CSS oklch() 字符串 ───────────────────
 const parseOklch = (str: string) => {
@@ -56,21 +43,18 @@ const themeOptions = [
   { label: '深色', value: 'dark' },
 ] as const
 
+// ─── 品牌色 fallback 值 (来自 theme.css) ──────
+const BRAND_FALLBACK = { L: 0.6, C: 0.1, H: 48 } as const
+
 // ─── 品牌色状态 (oklch 三通道) ─────────────────
-const brandL = ref(0.6)
-const brandC = ref(0.1)
-const brandH = ref(48)
+const brandL = ref<number>(BRAND_FALLBACK.L)
+const brandC = ref<number>(BRAND_FALLBACK.C)
+const brandH = ref<number>(BRAND_FALLBACK.H)
 
-const brandHex = computed(() => oklchToHex(brandL.value, brandC.value, brandH.value))
-
-const onBrandInput = (e: Event) => {
-  const next = (e.target as HTMLInputElement | null)?.value
-  if (!next) return
-  const oklch = hexToOklch(next)
-  if (!oklch) return
-  brandL.value = oklch.L
-  brandC.value = oklch.C
-  brandH.value = oklch.H
+const resetBrand = () => {
+  brandL.value = BRAND_FALLBACK.L
+  brandC.value = BRAND_FALLBACK.C
+  brandH.value = BRAND_FALLBACK.H
 }
 
 // ─── 色阶生成 ─────────────────────────────────
@@ -89,7 +73,7 @@ const PALETTE_TABLE = [
 
 const MAX_CHROMA = 0.4
 
-const generatePalette = (C: number, H: number) => {
+const generatePalette = (L: number, C: number, H: number) => {
   const root = document.body.style
   for (let i = 0; i < PALETTE_TABLE.length; i++) {
     const lv = PALETTE_TABLE[i]
@@ -110,7 +94,7 @@ const syncBrandToRoot = () => {
     '--brand',
     `oklch(${(L * 100).toFixed(1)}% ${C.toFixed(4)} ${H.toFixed(1)})`,
   )
-  generatePalette(C, H)
+  generatePalette(L, C, H)
 }
 
 const loadBrandFromRoot = () => {
@@ -135,19 +119,16 @@ watch([brandL, brandC, brandH], () => {
 
 <template>
   <div class="">
-    <div class="mx-2">主题色</div>
-    <div class="m-2 flex items-center gap-2">
-      <input
-        class="h-8 w-12 cursor-pointer rounded"
-        type="color"
-        :value="brandHex"
-        @input="onBrandInput"
-      />
-      <div class="text-sm opacity-70">
-        L: {{ (brandL * 100).toFixed(0) }}% C: {{ brandC.toFixed(2) }} H:
-        {{ Math.round(brandH) }}
-      </div>
+    <div class="flex items-center justify-between mx-2">
+      <span>主题色</span>
+      <button
+        class="text-xs text-[--gl-6] hover:text-[--gl-8] active:opacity-70 transition-colors"
+        @click="resetBrand"
+      >
+        重置
+      </button>
     </div>
+    <OklchColorPicker v-model:l="brandL" v-model:c="brandC" v-model:h="brandH" class="m-2" />
     <div class="mx-2">颜色模式</div>
     <WinuiSegmented class="m-2" v-model="theme" :options="[...themeOptions]" />
   </div>
