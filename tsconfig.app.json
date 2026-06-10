@@ -13,7 +13,8 @@
     "types": ["vite/client", "vue-router/auto"],
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true
   },
   "include": ["index.html", "types", "src"],
   "exclude": ["./types/experimental.node.d.ts"]
