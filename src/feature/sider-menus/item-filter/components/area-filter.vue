@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useRequest } from 'alova/client'
-import { ListboxRoot, ListboxContent, ListboxVirtualizer, ListboxItem } from 'reka-ui'
 import { useI18n } from 'vue-i18n'
 import Api from '@/api'
 import type { AreaVo } from '@/api/services/main/globals'
 import { useRouteQuery } from '@/pages/map/index.query'
 import { RegularWorld, RegularChromeClose } from '@/ui/g-icons'
+import AreaSelectItem from './area-select-item.vue'
 import FilterItem from './filter-item.vue'
+import ListSelect from './list-select.vue'
 
 const { t } = useI18n()
 const query = useRouteQuery()
@@ -31,6 +32,7 @@ const areaMap = computed(() => {
   }, new Map<string, AreaVo>())
 })
 
+const step = ref(0)
 const areaCodePath = ref<string[]>([])
 watch(
   areaMap,
@@ -41,6 +43,7 @@ watch(
     const storagedParent = areaMap.value.get(`${storagedArea.parentId}`)
     if (!storagedParent) return
     areaCodePath.value = [storagedParent.code ?? '', storagedArea.code ?? '']
+    step.value = 1
   },
   { immediate: true },
 )
@@ -76,7 +79,6 @@ const targetArea = computed({
 
 const selecTargetArea = (area: AreaVo) => {
   if (!areaCodePath.value[0]) return
-  areaCodePath.value[1] = area.code ?? ''
   targetArea.value = area
 }
 
@@ -107,7 +109,7 @@ const childAreaList = computed(() => {
             areaCodePath.length > 0 ? 'cursor-pointer hover:bg-[--gl-2]' : '',
             parentArea ? 'bg-[--color-brand-1]' : '',
           ]"
-          @click="areaCodePath = []"
+          @click="step = 0"
         >
           <div
             :class="[
@@ -176,69 +178,41 @@ const childAreaList = computed(() => {
 
     <template #default>
       <div class="h-50dvh bg-[--gl-2] border border-[--gl-3] rounded m-1">
-        <ListboxRoot
-          v-if="areaCodePath.length >= 1"
+        <ListSelect
+          v-show="step === 0"
+          v-model="areaCodePath[0]"
+          v-slot="{ label, item, value, selected }"
           class="h-full overflow-auto py-0.5"
-          style="scrollbar-width: thin"
+          :options="parentAreaList"
+          :get-label="(area) => area.name ?? ''"
+          :get-value="(area) => area.code ?? ''"
         >
-          <ListboxContent>
-            <ListboxVirtualizer
-              :options="childAreaList ?? []"
-              :estimate-size="60"
-              :text-content="(item) => item.name ?? ''"
-            >
-              <template #default="{ option: area }">
-                <ListboxItem :value="area.id ?? ''" class="w-full h-15 px-1 py-1 bg-transparent">
-                  <div
-                    class="focus:outline-[--color-brand-3]"
-                    tabindex="0"
-                    :class="[
-                      'rounded-md w-full h-full pl-2 pr-3 pt-1 outline-2 outline-transparent',
-                      'border border-[--gl-3]',
-                      area.code === targetArea?.code
-                        ? 'bg-[--color-brand-1]'
-                        : 'bg-[--gl-1] hover:bg-[--gl-2] active:bg-[--gl-3]',
-                    ]"
-                    @click.stop="selecTargetArea(area)"
-                  >
-                    <div class="text-base truncate">{{ area.name }}</div>
-                    <div class="text-xs">{{ area.code }}</div>
-                  </div>
-                </ListboxItem>
-              </template>
-            </ListboxVirtualizer>
-          </ListboxContent>
-        </ListboxRoot>
+          <AreaSelectItem
+            :label="label"
+            :code="value"
+            :item="item"
+            :selected="selected"
+            @select="step = 1"
+          />
+        </ListSelect>
 
-        <ListboxRoot v-else class="h-full overflow-auto py-0.5" style="scrollbar-width: thin">
-          <ListboxContent>
-            <ListboxVirtualizer
-              :options="parentAreaList ?? []"
-              :estimate-size="60"
-              :text-content="(item) => item.name ?? ''"
-            >
-              <template #default="{ option: area }">
-                <ListboxItem :value="area.id ?? ''" class="w-full h-15 px-1 py-1 bg-transparent">
-                  <div
-                    class="focus:outline-[--color-brand-3]"
-                    tabindex="0"
-                    :class="[
-                      'rounded-md w-full h-full pl-2 pr-3 pt-1 outline-2 outline-transparent',
-                      'border border-[--gl-3]',
-                      area.code === parentArea?.code
-                        ? 'bg-[--color-brand-1]'
-                        : 'bg-[--gl-1] hover:bg-[--gl-2] active:bg-[--gl-3]',
-                    ]"
-                    @click.stop="areaCodePath = [area.code ?? '']"
-                  >
-                    <div class="text-base truncate">{{ area.name }}</div>
-                    <div class="text-xs">{{ area.code }}</div>
-                  </div>
-                </ListboxItem>
-              </template>
-            </ListboxVirtualizer>
-          </ListboxContent>
-        </ListboxRoot>
+        <ListSelect
+          v-show="step === 1"
+          v-model="areaCodePath[1]"
+          v-slot="{ label, item, value, selected }"
+          class="h-full overflow-auto py-0.5"
+          :options="childAreaList"
+          :get-label="(item) => item.name ?? ''"
+          :get-value="(item) => item.code ?? ''"
+        >
+          <AreaSelectItem
+            :label="label"
+            :code="value"
+            :item="item"
+            :selected="selected"
+            @select="selecTargetArea"
+          />
+        </ListSelect>
       </div>
     </template>
   </FilterItem>
