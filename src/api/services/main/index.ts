@@ -40,16 +40,20 @@ export const alovaInstance = createAlova({
     method.config.headers['Authorization'] = `${toUpperFirst(res.token_type)} ${res.access_token}`
     userStore.setToken(res)
   }),
-  responded: (res) => {
+  responded: async (res) => {
     const clone = res.clone()
     if (!clone.ok) {
       throw new Error(clone.statusText)
     }
     const contentType = clone.headers.get('content-type')
-    if (contentType?.startsWith('application/json')) {
-      return clone.json()
+    if (!contentType?.startsWith('application/json')) {
+      return clone
     }
-    return clone
+    const json = (await clone.json()) as ApiTypes.RBoolean & { data: unknown }
+    if (json.error) {
+      throw new Error(json.message || res.statusText || `请求失败: ${res.status}`)
+    }
+    return json
   },
 })
 
