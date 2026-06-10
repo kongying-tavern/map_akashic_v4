@@ -47,7 +47,7 @@ export const alovaInstance = createAlova({
     }
     const contentType = clone.headers.get('content-type')
     if (!contentType?.startsWith('application/json')) {
-      return clone
+      return res.blob()
     }
     const json = (await clone.json()) as ApiTypes.RBoolean & { data: unknown }
     if (json.error) {
