@@ -2,9 +2,7 @@
 import { useRequest, useWatcher } from 'alova/client'
 import { ScrollAreaRoot, ScrollAreaViewport, ScrollAreaScrollbar, ScrollAreaThumb } from 'reka-ui'
 import Api from '@/api'
-import { useIconStore } from '@/stores'
-
-const iconStore = useIconStore()
+import { IconRenderer } from '@/components/icon-renderer'
 
 // ============================== item type ==============================
 const { data: rawItemTypeList } = useRequest(
@@ -16,7 +14,7 @@ const { data: rawItemTypeList } = useRequest(
   },
 )
 
-const transformedTypeList = computed(() => {
+const itemTypeList = computed(() => {
   const list = rawItemTypeList.value
     .filter(({ isFinal }) => isFinal)
     .toSorted((a, b) => (b.sortIndex ?? 0) - (a.sortIndex ?? 0))
@@ -31,81 +29,130 @@ const transformedTypeList = computed(() => {
   return list
 })
 
-const selectedItemTypeId = ref<number | undefined>(-1)
+const selectedTypeIndex = ref<number>(0)
 
 const styleClass = {
   itemCommon: ['flex overflow-hidden text-sm', 'select-none cursor-pointer'].join(' '),
   itemUnSelected: ['hover:bg-[--gl-2] active:bg-[--gl-3]'].join(' '),
-  itemSelected: ['bg-[--gl-5] text-[--gl-1]'].join(' '),
+  itemSelected: ['bg-[--color-brand-1] text-[--color-brand-5]'].join(' '),
 } as const
 
 // ============================== item list ==============================
-const { data: rawItemList } = useWatcher(() => {
-  const typeId = selectedItemTypeId.value
-  const typeIdList = typeId === undefined ? [] : typeId > -1 ? [typeId] : []
-  return Api.main.item.listItemIdByType({
-    data: { typeIdList },
-  })
-}, [selectedItemTypeId])
+const { data: rawItemList, loading } = useWatcher(
+  () => {
+    const index = selectedTypeIndex.value
+    const itemType = itemTypeList.value[index]
+    const typeIdList = itemType.id === undefined ? [] : itemType.id > -1 ? [itemType.id] : []
+    return Api.main.item.listItemIdByType({
+      data: { typeIdList },
+      transform: (data) => data.data?.record ?? [],
+    })
+  },
+  [selectedTypeIndex],
+  {
+    initialData: [],
+  },
+)
 
-console.log('iconStore.iconList', iconStore.iconList)
+const itemList = computed(() => {
+  const index = selectedTypeIndex.value
+  const itemType = itemTypeList.value[index]
+  if (itemType.id === undefined) return []
+  if (itemType.id < 0) return []
+  return rawItemList.value
+})
+
+const selectedFilterModeIndex = ref(0)
+const filterOptions = [
+  { label: '基本筛选', value: 'basic' },
+  { label: '高阶筛选', value: 'advanced' },
+]
 </script>
 
 <template>
-  <div class="page-development">
-    <div class="border w-120 h-96 m-8 rounded flex flex-col">
+  <div
+    class="page-development w-full h-full bg-[image:linear-gradient(135deg,#a9d0fe,#f4eef5,#a9d0fe)]"
+  >
+    <div
+      class="panel w-96 h-120 p-1 rounded-lg flex flex-col absolute left-8 top-8 bg-[--gl-1]/40 shadow-lg"
+    >
+      <!-- 筛选类型选择器 -->
+      <div class="flex gap-1 mb-1">
+        <div
+          v-for="(filter, index) in filterOptions"
+          :key="filter.value"
+          class="filter-type-item relative text-sm px-3 h-8 leading-8 rounded-md select-none"
+          :class="[
+            index === selectedFilterModeIndex
+              ? 'bg-[--color-brand-1] text-[--color-brand-5] [--corner-color:--gl-1] shadow'
+              : 'bg-transparent text-[--gl-6] hover:bg-[--gl-1]/50 [--corner-color:transparent]',
+          ]"
+          @pointerdown="selectedFilterModeIndex = index"
+        >
+          {{ filter.label }}
+        </div>
+      </div>
+
       <!-- TODO: 上方地区选择器 -->
-      <div class="border-b w-full h-12 shrink-0">Area Zone</div>
+      <div
+        class="h-24 shrink-0 bg-[--gl-1] p-1 mb-1 rounded-md select-none hover:bg-[--gl-2] active:bg-[--gl-3] relative flex shadow"
+      >
+        <div class="w-1/3 grid place-content-center">Country</div>
+        <div class="w-1px h-full bg-gray-400 rotate-15deg" />
+        <div class="w-2/3 grid place-content-center">Zone</div>
+      </div>
 
       <!-- 下方区域 -->
-      <div class="flex-1 flex overflow-hidden">
+      <!-- TODO: 物品搜索 -->
+      <div class="p-2 bg-[--gl-1] rounded-md mb-1 shadow">
+        <input
+          :class="[
+            'w-full h-9 px-3 py-1 bg-[--gl-2] rounded-full',
+            // 'border border-[--gl-5] rounded-full',
+            'text-sm leading-6.5',
+            'placeholder-text-sm',
+            'outline-[--gl-5]',
+          ]"
+          :placeholder="`在 ${itemTypeList[selectedTypeIndex]?.name} 中检索`"
+        />
+      </div>
+
+      <div class="flex-1 flex overflow-hidden rounded-md bg-[--gl-1] shadow">
         <!-- 左侧物品分类选择器 -->
-        <ScrollAreaRoot class="shrink-0 w-48 overflow-hidden [--scrollbar-size:8px] border-r">
+        <ScrollAreaRoot class="shrink-0 w-40 overflow-hidden [--scrollbar-size:0.5rem]">
           <ScrollAreaViewport class="w-full h-full">
             <div
-              v-for="itemType in transformedTypeList"
+              v-for="(itemType, index) in itemTypeList"
               :key="itemType.id"
               :class="[
                 styleClass.itemCommon,
-                itemType.id === selectedItemTypeId
-                  ? styleClass.itemSelected
-                  : styleClass.itemUnSelected,
+                index === selectedTypeIndex ? styleClass.itemSelected : styleClass.itemUnSelected,
               ]"
-              @click="selectedItemTypeId = itemType.id"
+              @click="selectedTypeIndex = index"
             >
-              <div class="shrink-0 w-8 h-8 border m-1"></div>
+              <IconRenderer
+                class="shrink-0 w-8 h-8 border rounded-full border-[--gl-4] m-1"
+                :icon-id="itemType.iconId"
+              />
               <div class="flex-1 truncate leading-8">
                 {{ itemType.name }}
               </div>
             </div>
           </ScrollAreaViewport>
-          <ScrollAreaScrollbar
-            class="bg-gray-100 w-[--scrollbar-size] p-0.5"
-            orientation="vertical"
-          >
-            <ScrollAreaThumb class="rounded-full bg-gray-300 hover:bg-gray-400 transition-colors" />
+          <ScrollAreaScrollbar class="w-[--scrollbar-size]" orientation="vertical">
+            <ScrollAreaThumb class="rounded-full bg-gray-300/50 hover:bg-gray-400/50" />
           </ScrollAreaScrollbar>
         </ScrollAreaRoot>
 
         <!-- 右侧区域 -->
         <div class="flex-1">
-          <!-- TODO: 物品搜索 -->
-          <div class="p-2 border-b">
-            <input
-              :class="[
-                'w-full h-9 px-3 py-1',
-                'border border-[--gl-5] rounded-full',
-                'text-sm leading-6.5',
-                'placeholder-text-sm',
-                'outline-[--gl-5]',
-              ]"
-              value="请输入文本"
-              placeholder="在 获取方式 分类中检索"
-            />
-          </div>
-
           <!-- TODO: 物品选择器 -->
-          <div class="">items</div>
+          <div class="">
+            <div v-show="loading">Loading</div>
+            <div v-show="!loading" v-for="item in itemList" :key="item.id">
+              {{ item.name }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
