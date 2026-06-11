@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDark } from '@vueuse/core'
 import { converter, parse } from 'culori'
+import { StorageKey } from '@/shared/enums/storage-key'
 import WinuiSegmented from '@/ui/winui/winui-segmented.vue'
 import { OklchColorPicker } from './oklch-color-picker'
 
@@ -21,7 +22,9 @@ const parseOklch = (str: string) => {
 }
 
 // ─── 主题切换 ──────────────────────────────────
-const isDark = useDark({})
+const isDark = useDark({
+  storageKey: StorageKey.COLOR_SCHEMA,
+})
 watch(
   isDark,
   (dark) => {

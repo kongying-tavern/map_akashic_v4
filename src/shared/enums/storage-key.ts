@@ -7,4 +7,7 @@ export const enum StorageKey {
 
   /** 语言喜好 */
   LOCALE = 'kongying-tavern:web-map:locale',
+
+  /** 颜色主题 */
+  COLOR_SCHEMA = 'kongying-tavern:web-map:color-schema',
 }
