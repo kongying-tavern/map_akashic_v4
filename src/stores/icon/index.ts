@@ -1,21 +1,29 @@
 import { useRequest } from 'alova/client'
 import { defineStore } from 'pinia'
 import Api from '@/api'
+import type { IconVo } from '@/api/services/main/globals'
 
 export const useIconStore = defineStore('icon', () => {
-  const { data: iconList } = useRequest(
-    Api.main.icon_doc.listAllIconBinary({
-      transform: async (data) => {
-        const blob = data as unknown as Blob
-        const ds = new DecompressionStream('gzip')
-        const response = new Response(blob.stream().pipeThrough(ds))
-        const text = await response.text()
-        return JSON.parse(text)
-      },
-    }),
+  const { data: iconList, loading: iconListLoading } = useRequest(
+    Api.main.icon_doc.listAllIconBinary(),
+    {
+      initialData: [],
+    },
   )
 
+  const iconIdMap = computed(() => {
+    const map = new Map<number | undefined, IconVo>()
+    const { length } = iconList.value
+    for (let i = 0; i < length; i++) {
+      const icon = iconList.value[i]
+      map.set(icon.id, icon)
+    }
+    return map
+  })
+
   return {
-    iconList: computed(() => toRaw(iconList.value)),
+    list: computed(() => toRaw(iconList.value)),
+    idMap: iconIdMap,
+    loading: computed(() => iconListLoading.value),
   }
 })
