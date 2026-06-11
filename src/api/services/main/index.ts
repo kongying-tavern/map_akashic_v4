@@ -3,6 +3,7 @@ import { createClientTokenAuthentication } from 'alova/client'
 import fetchAdapter from 'alova/fetch'
 import VueHook from 'alova/vue'
 import { useUserStore } from '@/stores'
+import { decompress } from '../../utils/decompress-gzip'
 import { createKvCache } from '../../utils/kv-cache'
 import auth from '../auth'
 import { createApis, withConfigType } from './createApis'
@@ -47,7 +48,7 @@ export const alovaInstance = createAlova({
     }
     const contentType = clone.headers.get('content-type')
     if (!contentType?.startsWith('application/json')) {
-      return res.blob()
+      return res
     }
     const json = (await clone.json()) as ApiTypes.RBoolean & { data: unknown }
     if (json.error) {
@@ -57,7 +58,17 @@ export const alovaInstance = createAlova({
   },
 })
 
-export const $$userConfigMap = withConfigType({})
+export const $$userConfigMap = withConfigType({
+  'icon_doc.listAllIconBinary': {
+    transform: (res) => decompress<ApiTypes.IconVo[]>(res),
+  },
+  'item_doc.listPageItemByBinary': {
+    transform: (res) => decompress<ApiTypes.ItemVo[]>(res),
+  },
+  'marker_doc.listMarkersByBinary': {
+    transform: (res) => decompress<ApiTypes.MarkerVo[]>(res),
+  },
+})
 
 const Apis = createApis(alovaInstance, $$userConfigMap)
 
