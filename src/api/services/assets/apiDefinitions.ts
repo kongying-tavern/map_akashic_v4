@@ -3,10 +3,8 @@
  */
 const BASE_URL = import.meta.env.VITE_SERVICE_RESOURCE_URL
 
-const context = {
-  root: null as Promise<FileSystemDirectoryHandle> | null,
-  folderHandles: new Map<string, Promise<FileSystemDirectoryHandle>>(),
-}
+const root = navigator.storage.getDirectory()
+const cachedDirHandles = new Map<string, Promise<FileSystemDirectoryHandle>>()
 
 const getUrlMeta = (url: string) => {
   // 移除协议头 (https://)，然后按 / 分割
@@ -22,16 +20,37 @@ const getUrlMeta = (url: string) => {
   }
 
   return {
-    foldername: parts.slice(0, -1).join('&'), // 除了最后一个都是文件夹
+    path: parts.slice(0, -1).join('/'), // 除了最后一个都是文件夹
     filename: parts[parts.length - 1], // 最后一个是文件名
   }
 }
 
-const getRoot = () => {
-  if (!context.root) {
-    context.root = navigator.storage.getDirectory()
+const openDir = (
+  /** @example 'tileset/tile_twt64/10' */
+  path: string,
+) => {
+  const segments = path.split('/').filter(Boolean)
+  if (segments.length === 0) return root
+  const dirPromise = (async () => {
+    let currentHandle = await root
+    for await (const segment of segments) {
+      currentHandle = await currentHandle.getDirectoryHandle(segment, { create: true })
+    }
+    return currentHandle
+  })()
+  cachedDirHandles.set(path, dirPromise)
+  return dirPromise
+}
+
+const writeCache = async (dir: FileSystemDirectoryHandle, filename: string, data: Blob) => {
+  const handle = await dir.getFileHandle(filename, { create: true })
+  const stream = await handle.createWritable()
+  try {
+    await stream.write(data)
+    await stream.close()
+  } catch {
+    await stream.abort()
   }
-  return context.root
 }
 
 /** 获取 tile 图片资源 */
@@ -49,27 +68,15 @@ export const getTile = async (
   signal?.throwIfAborted()
 
   const { pathId, x, y, z, zMapping = 0, extension = 'png' } = query
-  const url = `${BASE_URL}/tiles_${pathId}/${z + zMapping}/${x}_${y}.${extension}`
+  const path = `${BASE_URL}/tiles_${pathId}/${z + zMapping}`
+  const filename = `${x}_${y}.${extension}`
+  const url = `${path}/${filename}`
 
-  // 优先检查缓存
-  const { foldername, filename } = getUrlMeta(url)
-  if (!context.folderHandles.has(foldername)) {
-    // 缓存 tileset 目录句柄，缓存量级不会超过 100 个，因此不做清理。
-    // 目前不超过 10 个地图，每地图只有 4 个 level 层级目录。
-    // 未来来看不会超过 100 个独立地图，假设句柄占 1KB 内存，即使缓存 400 个句柄也不会对内存和性能形成客观影响。
-    // 而缓存句柄的收益远超每次请求都重新获取句柄。
-    const root = await getRoot()
-    context.folderHandles.set(foldername, root.getDirectoryHandle(foldername, { create: true }))
-  }
-  const folder = await context.folderHandles.get(foldername)!
-  const fileHandle = await folder.getFileHandle(filename).catch(() => null)
-
-  if (fileHandle) {
-    const file = await fileHandle.getFile()
-    // 文件大于 0 表示写入了有效的图片文件，直接返回
-    if (file.size > 0) {
-      return createImageBitmap(file)
-    }
+  const dir = await openDir(path)
+  const cache = await dir.getFileHandle(filename).catch(() => null)
+  if (cache) {
+    const file = await cache.getFile()
+    return createImageBitmap(file)
   }
 
   // 缓存 miss 的情况
@@ -82,14 +89,11 @@ export const getTile = async (
   if (!res.ok) throw new Error(res.statusText || '请求失败')
 
   const blob = await res.blob()
-  signal?.throwIfAborted()
 
   // 不需要等待缓存写入
-  folder
-    .getFileHandle(filename, { create: true })
-    .then((handle) => handle.createWritable())
-    .then((stream) => stream.write(blob).then(stream.close).catch(stream.abort))
+  writeCache(dir, filename, blob)
 
+  signal?.throwIfAborted()
   return createImageBitmap(blob)
 }
 
@@ -97,19 +101,11 @@ export const getTile = async (
 export const getCacheableAsset = async (url: string, signal?: AbortSignal) => {
   signal?.throwIfAborted()
 
-  const { foldername, filename } = getUrlMeta(url)
-  if (!context.folderHandles.has(foldername)) {
-    const root = await getRoot()
-    context.folderHandles.set(foldername, root.getDirectoryHandle(foldername, { create: true }))
-  }
-  const folder = await context.folderHandles.get(foldername)!
-  const fileHandle = await folder.getFileHandle(filename).catch(() => null)
-  if (fileHandle) {
-    const file = await fileHandle.getFile()
-    // 文件大于 0 表示写入了有效的图片文件，直接返回
-    if (file.size > 0) {
-      return file
-    }
+  const { path, filename } = getUrlMeta(url)
+  const dir = await openDir(path)
+  const cache = await dir.getFileHandle(filename).catch(() => null)
+  if (cache) {
+    return cache.getFile()
   }
 
   // 缓存 miss 的情况
@@ -125,10 +121,7 @@ export const getCacheableAsset = async (url: string, signal?: AbortSignal) => {
   signal?.throwIfAborted()
 
   // 不需要等待缓存写入
-  folder
-    .getFileHandle(filename, { create: true })
-    .then((handle) => handle.createWritable())
-    .then((stream) => stream.write(blob).then(stream.close).catch(stream.abort))
+  writeCache(dir, filename, blob)
 
   return blob
 }
