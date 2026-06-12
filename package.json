@@ -14,7 +14,8 @@
     "fmt": "oxfmt",
     "check:type": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "precommit": "pnpm lint && pnpm check:type",
-    "cz": "czg emoji"
+    "cz": "czg emoji",
+    "proto:build": "pbjs -t static-module -w esm -o src/protobuf/index.mjs src/protobuf/schema/*.proto && pbts -o src/protobuf/index.d.ts src/protobuf/index.mjs"
   },
   "dependencies": {
     "@deck.gl/extensions": "9.3.2",
@@ -26,6 +27,7 @@
     "deck.gl": "9.3.2",
     "dexie": "4.4.2",
     "pinia": "3.0.4",
+    "protobufjs": "8.6.3",
     "reka-ui": "2.9.8",
     "rxjs": "7.8.2",
     "vue": "3.5.29",
@@ -43,6 +45,7 @@
     "czg": "1.12.0",
     "oxfmt": "0.42.0",
     "oxlint": "1.57.0",
+    "protobufjs-cli": "2.5.4",
     "typescript": "5.9.3",
     "unocss": "66.6.6",
     "unplugin-auto-import": "21.0.0",
