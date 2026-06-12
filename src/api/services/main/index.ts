@@ -2,6 +2,7 @@ import { createAlova } from 'alova'
 import { createClientTokenAuthentication } from 'alova/client'
 import fetchAdapter from 'alova/fetch'
 import VueHook from 'alova/vue'
+import { kongying } from '@/protobuf'
 import { useUserStore } from '@/stores'
 import { decompress } from '../../utils/decompress-gzip'
 import { createKvCache } from '../../utils/kv-cache'
@@ -13,6 +14,8 @@ const { onAuthRequired } = createClientTokenAuthentication({})
 
 const toUpperFirst = (str: string) => str.replace(/\b\w/g, (c) => c.toUpperCase())
 
+const isDev = import.meta.env.DEV
+
 /** 主服务实例 */
 export const alovaInstance = createAlova({
   baseURL: import.meta.env.VITE_SERVICE_MAIN_URL,
@@ -20,11 +23,13 @@ export const alovaInstance = createAlova({
   cacheFor: {
     GET: {
       mode: 'restore',
-      expire: 30 * 60 * 1000, // cache 30 minutes
+      expire: isDev
+        ? 1440 * 60 * 1000 // 降低开发服务器负荷
+        : 30 * 60 * 1000, // cache 30 minutes in indexedDB
     },
     POST: {
-      mode: 'restore',
-      expire: 30 * 60 * 1000, // cache 30 minutes
+      mode: 'memory',
+      expire: 5 * 60 * 1000, // cache 5 minutes in memory
     },
   },
   l2Cache: createKvCache('main-service'),
@@ -66,7 +71,16 @@ export const $$userConfigMap = withConfigType({
     transform: (res) => decompress<ApiTypes.ItemVo[]>(res),
   },
   'marker_doc.listMarkersByBinary': {
-    transform: (res) => decompress<ApiTypes.MarkerVo[]>(res),
+    transform: async (originResponse) => {
+      const res = originResponse as unknown as Response
+      const ds = new DecompressionStream('gzip')
+      const bytes = await new Response(res.body?.pipeThrough(ds)).bytes()
+      const value = kongying.MarkerVoList.decode(bytes).toJSON() as {
+        markers: ApiTypes.MarkerVo[]
+        users: Record<string, ApiTypes.SysUserSmallVo>
+      }
+      return value
+    },
   },
 })
 
