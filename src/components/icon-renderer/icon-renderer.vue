@@ -11,16 +11,11 @@ export interface IconRendererProps {
 </script>
 
 <script setup lang="ts">
-import { useIconStore } from '@/stores'
+import { useIcon } from '@/hooks/use-icon'
 
 const props = defineProps<IconRendererProps>()
 
-const iconStore = useIconStore()
-
-const imageUrl = computed(() => {
-  if (!props.iconId) return
-  return iconStore.idMap.get(props.iconId)?.url
-})
+const { url: imageUrl } = useIcon(toRef(props, 'iconId'))
 
 const enum Status {
   IDLE = 'idle',
