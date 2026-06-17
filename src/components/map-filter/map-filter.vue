@@ -4,7 +4,7 @@ import { ScrollAreaRoot, ScrollAreaViewport, ScrollAreaScrollbar, ScrollAreaThum
 import Api from '@/api'
 import { IconRenderer } from '@/components/icon-renderer'
 import { useMarkerStore } from '@/stores'
-import AreaSelect from './components/area-select.vue'
+import AreaSelect from './components/area-select-composite/area-select.vue'
 import FilterModeSelector from './components/filter-mode-selector.vue'
 
 const markerStore = useMarkerStore()
@@ -35,12 +35,6 @@ const itemTypeList = computed(() => {
 })
 
 const selectedTypeIndex = ref<number>(0)
-
-const styleClass = {
-  itemCommon: ['flex overflow-hidden text-sm', 'select-none cursor-pointer'].join(' '),
-  itemUnSelected: ['hover:bg-[--gl-2] active:bg-[--gl-3]'].join(' '),
-  itemSelected: ['bg-[--color-brand-1] text-[--color-brand-5]'].join(' '),
-} as const
 
 // ============================== item list ==============================
 const { data: rawItemList, loading } = useWatcher(
