@@ -23,7 +23,6 @@ const emits = defineEmits<{
 }>()
 
 const iconStore = useIconStore()
-const id = useId()
 
 const pendingParentId = ref<number>()
 const pendingChildId = ref<number>()
@@ -67,12 +66,9 @@ const getIconUrl = (iconId?: number) => {
 <template>
   <div
     v-show="open"
-    :style="{
-      'view-transition-name': `area-expanded-${id}`,
-    }"
     :class="[
-      'absolute left-0 top-0 w-full',
-      'mb-1 rounded-lg overflow-hidden',
+      'absolute left-0 top-0 z-1',
+      'w-full mb-1 rounded-xl overflow-hidden',
       'border border-[--gl-3]/50',
       'shadow-lg',
       'bg-[--gl-0]',
@@ -81,7 +77,7 @@ const getIconUrl = (iconId?: number) => {
     <div class="flex h-[50dvh] max-h-[50dvh]">
       <!-- 左侧：父级地区列表 -->
       <div class="flex-1 min-w-0 flex flex-col border-r border-[--gl-3]/50">
-        <div class="shrink-0 px-3 py-2 text-xs font-medium border-b border-[--gl-2]">地区</div>
+        <div class="shrink-0 px-3 py-2 text-xs font-medium">地区</div>
         <template v-if="loading">
           <div v-for="i in 6" :key="i" class="h-12 flex items-center gap-2 px-3">
             <div class="size-6 shrink-0 rounded bg-[--gl-2] animate-pulse" />
@@ -118,8 +114,8 @@ const getIconUrl = (iconId?: number) => {
       </div>
 
       <!-- 右侧：子级地区列表 -->
-      <div class="flex-1 min-w-0 flex flex-col">
-        <div class="shrink-0 px-3 py-2 text-xs font-medium border-b border-[--gl-2]">子地区</div>
+      <div class="flex-1 min-w-0 flex flex-col bg-[--gl-2]/20">
+        <div class="shrink-0 px-3 py-2 text-xs font-medium">子地区</div>
         <template v-if="loading">
           <div v-for="i in 6" :key="i" class="h-12 flex items-center gap-2 px-3">
             <div class="size-6 shrink-0 rounded bg-[--gl-2] animate-pulse" />
