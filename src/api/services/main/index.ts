@@ -64,6 +64,12 @@ export const alovaInstance = createAlova({
 })
 
 export const $$userConfigMap = withConfigType({
+  'area.listArea': {
+    cacheFor: {
+      mode: 'restore',
+      expire: 60 * 60 * 1000,
+    },
+  },
   'icon_doc.listAllIconBinary': {
     transform: (res) => decompress<ApiTypes.IconVo[]>(res),
   },
