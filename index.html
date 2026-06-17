@@ -14,7 +14,7 @@
     </div>
 
     <!-- 应用容器 -->
-    <div id="app" class="fixed-page hidden"></div>
+    <div id="app" class="fixed-page"></div>
 
     <!-- 初始化 JS -->
     <script type="module">
@@ -40,6 +40,7 @@
         firstLoadingAnimation,
       ]).then(() => {
         loadingContainer.classList.toggle('exit', true)
+        loadingContainer.classList.toggle('pointer-events-none', true)
         app.classList.remove('hidden')
       })
     </script>
