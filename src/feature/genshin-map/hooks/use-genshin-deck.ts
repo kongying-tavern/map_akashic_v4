@@ -1,6 +1,8 @@
 import { OrthographicView } from 'deck.gl'
 import type { OrthographicViewState } from 'deck.gl'
+import { useMarkerStore } from '@/stores'
 import { GenshinDeck, type GenshinDeckProps } from '../core/genshin-deck'
+import { GenshinMarkerLayer } from '../layers/genshin-marker-layer'
 import { GenshinTileLayer } from '../layers/genshin-tile-layer'
 import type { ResolvedTileset } from '../types'
 
@@ -24,6 +26,7 @@ export const useGenshinDeck = (
   props: GenshinMapProps,
 ) => {
   const deckRef = shallowRef<GenshinDeck | null>(null)
+  const markerStore = useMarkerStore()
 
   const readonlyViewState = shallowRef<OrthographicViewState>({
     zoom: -3,
@@ -50,6 +53,20 @@ export const useGenshinDeck = (
       layer.applyDeck(deck, readonlyViewState.value)
     },
     { immediate: true },
+  )
+
+  // marker layer watcher
+  watch(
+    () => [deckRef.value, props.tileset, markerStore.indexList] as const,
+    ([deck, tileset, markers]) => {
+      if (!deck || !tileset || !markers.length) return
+      const [ox, oy] = tileset.center
+      const layer = new GenshinMarkerLayer({
+        data: markers,
+        positionOffset: [ox, oy],
+      })
+      layer.applyDeck(deck)
+    },
   )
 
   onUnmounted(() => {

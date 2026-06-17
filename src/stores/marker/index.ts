@@ -2,7 +2,7 @@ import { useRequest } from 'alova/client'
 import { defineStore } from 'pinia'
 import Api from '@/api'
 
-interface MarkerThin {
+export interface MarkerThin {
   id: string
   name: string
   pos: readonly [x: number, y: number]

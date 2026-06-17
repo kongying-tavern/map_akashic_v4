@@ -151,7 +151,14 @@ export class GenshinTileLayer extends CompositeLayer<GenshinTileLayerProps> {
     return createTileLayer(this.props.data)
   }
 
-  applyDeck(deck: GenshinDeck, oldViewState: OrthographicViewState) {
+  applyDeck(deck: GenshinDeck, oldViewState: OrthographicViewState, index?: number) {
+    const { layers = [] } = deck.props
+    const nextLayers = [...layers]
+    if (index !== undefined && index >= 0 && index <= nextLayers.length) {
+      nextLayers.splice(index, 0, this)
+    } else {
+      nextLayers.push(this)
+    }
     deck.setProps({
       controller: {
         dragMode: 'pan',
@@ -161,7 +168,7 @@ export class GenshinTileLayer extends CompositeLayer<GenshinTileLayerProps> {
         maxBounds: this.props.bounds,
       },
       initialViewState: oldViewState,
-      layers: [this],
+      layers: nextLayers,
     })
     // 分两次调用以便触发视口过渡
     deck.setProps({
