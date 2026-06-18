@@ -1,8 +1,8 @@
 import { CompositeLayer, TileLayer, BitmapLayer } from 'deck.gl'
-import type { OrthographicViewState } from 'deck.gl'
 import Api from '@/api'
 import type { GenshinDeck } from '../../core/genshin-deck'
 import type { ResolvedTileset } from '../../types'
+import { GenshinLayer } from '../../types'
 
 /** 符合 Genshin Tileset 格式的资源地址 */
 const BASE_URL = import.meta.env.VITE_SERVICE_RESOURCE_URL
@@ -122,7 +122,10 @@ const createTileLayer = (tileset: ResolvedTileset) => {
   return tileLayer
 }
 
-export class GenshinTileLayer extends CompositeLayer<GenshinTileLayerProps> {
+export class GenshinTileLayer
+  extends CompositeLayer<GenshinTileLayerProps>
+  implements GenshinLayer
+{
   static layerName = 'GenshinTileLayer'
 
   static #instance: GenshinTileLayer | null = null
@@ -151,14 +154,7 @@ export class GenshinTileLayer extends CompositeLayer<GenshinTileLayerProps> {
     return createTileLayer(this.props.data)
   }
 
-  applyDeck(deck: GenshinDeck, oldViewState: OrthographicViewState, index?: number) {
-    const { layers = [] } = deck.props
-    const nextLayers = [...layers]
-    if (index !== undefined && index >= 0 && index <= nextLayers.length) {
-      nextLayers.splice(index, 0, this)
-    } else {
-      nextLayers.push(this)
-    }
+  applyDeck(deck: GenshinDeck) {
     deck.setProps({
       controller: {
         dragMode: 'pan',
@@ -167,11 +163,6 @@ export class GenshinTileLayer extends CompositeLayer<GenshinTileLayerProps> {
         touchRotate: false,
         maxBounds: this.props.bounds,
       },
-      initialViewState: oldViewState,
-      layers: nextLayers,
-    })
-    // 分两次调用以便触发视口过渡
-    deck.setProps({
       initialViewState: {
         ...this.props.initViewState,
         transitionEasing: (t) => 1 - (1 - t) ** 4,

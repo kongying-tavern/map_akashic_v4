@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import SiderToolbar from './components/sider-toolbar/index.vue'
-import { useGenshinDeck, type GenshinMapProps } from './hooks/use-genshin-deck'
+import { OrthographicView } from 'deck.gl'
+import DeckGl from './elements/deck-gl.vue'
+import MarkerLayer from './elements/marker-layer.vue'
+import TileLayer from './elements/tile-layer.vue'
+import type { ResolvedTileset } from './types'
 
-const props = defineProps<GenshinMapProps>()
+defineProps<{
+  tileset: ResolvedTileset
+}>()
 
-const canvasRef = useTemplateRef('canvas')
-useGenshinDeck(canvasRef, props)
+const view = new OrthographicView()
 </script>
 
 <template>
-  <div class="fixed w-100dvw h-100dvh overflow-hidden bg-black">
-    <canvas ref="canvas" class="absolute inset-0" />
-    <SiderToolbar />
-  </div>
+  <DeckGl :views="view" v-slot="{ deck }">
+    <TileLayer :deck="deck" :index="0" :data="tileset" />
+    <MarkerLayer :deck="deck" :index="1" :data="{ data: [] }" />
+  </DeckGl>
 </template>

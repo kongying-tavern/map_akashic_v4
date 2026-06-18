@@ -1,7 +1,6 @@
 import { CompositeLayer, ScatterplotLayer } from 'deck.gl'
 import type { Layer, LayersList } from 'deck.gl'
 import type { MarkerThin } from '@/stores/marker'
-import type { GenshinDeck } from '../../core/genshin-deck'
 
 export interface GenshinMarkerLayerProps {
   data: MarkerThin[]
@@ -29,18 +28,5 @@ export class GenshinMarkerLayer extends CompositeLayer<GenshinMarkerLayerProps> 
         pickable: true,
       }),
     ]
-  }
-
-  applyDeck(deck: GenshinDeck, index?: number) {
-    const { layers = [] } = deck.props
-    const nextLayers = [...layers]
-    if (index !== undefined && index >= 0 && index <= nextLayers.length) {
-      nextLayers.splice(index, 0, this)
-    } else {
-      nextLayers.push(this)
-    }
-    deck.setProps({
-      layers: nextLayers,
-    })
   }
 }

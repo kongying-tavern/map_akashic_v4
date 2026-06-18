@@ -7,3 +7,4 @@ export type {
   TileLayerFactoryConfig,
   TileGridData,
 } from './tile-layer'
+export type { GenshinLayer } from './genshin-layer'
