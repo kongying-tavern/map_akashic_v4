@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MapError, MapLoading } from '@/feature/genshin-map/components'
 import GenshinMap from '@/feature/genshin-map/index.vue'
 import { useConfigStore } from '@/stores'
 import { useRouteQuery } from './index.query'
@@ -13,8 +14,18 @@ const tilesetConfig = computed(() => {
   }
   return configStore.tiles.get(query.value.area)
 })
+
+const handleRetry = () => {
+  configStore.loadConfig()
+}
 </script>
 
 <template>
-  <GenshinMap v-if="tilesetConfig" :tileset="tilesetConfig" />
+  <MapLoading v-if="configStore.loading" />
+  <MapError
+    v-else-if="configStore.error"
+    :message="configStore.error.message"
+    @retry="handleRetry"
+  />
+  <GenshinMap v-else-if="tilesetConfig" :tileset="tilesetConfig" />
 </template>
