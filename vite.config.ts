@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { styleText as style } from 'node:util'
 import Vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
@@ -45,17 +46,24 @@ export default defineConfig(({ mode }) => {
 
   const proxy = proxyList.reduce(
     (acc, item) => {
-      if (item.proxy) {
-        Logger.info(`${item.name}代理已启用`)
-        acc[item.match] = {
-          target: item.proxy,
-          changeOrigin: true,
-          rewrite: (path) => {
-            const rewritten = path.replace(item.match, '')
-            Logger.info(`${path} -> ${item.proxy}${rewritten}`)
-            return rewritten
-          },
-        }
+      if (!item.proxy) return acc
+      Logger.info(`${item.name}代理已启用`)
+      acc[item.match] = {
+        target: item.proxy,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(item.match, ''),
+        configure: (proxy, _options) => {
+          proxy.on('proxyRes', (_proxyReq, { url = '' }) => {
+            const rewritten = url.replace(item.match, '')
+            Logger.info(`${url} ${style('green', '--√->')} ${item.proxy}${rewritten}`)
+          })
+          proxy.on('error', (err, { url = '' }) => {
+            const rewritten = url.replace(item.match, '')
+            Logger.info(
+              `${url} ${style('red', '--×->')} ${item.proxy}${rewritten} ${style('red', err.message)}`,
+            )
+          })
+        },
       }
       return acc
     },
