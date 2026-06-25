@@ -1,8 +1,8 @@
 import { CompositeLayer, ScatterplotLayer } from 'deck.gl'
-import type { Layer, LayersList } from 'deck.gl'
+import type { Layer, LayersList, CompositeLayerProps } from 'deck.gl'
 import type { MarkerThin } from '@/stores/marker'
 
-export interface GenshinMarkerLayerProps {
+export interface GenshinMarkerLayerProps extends Partial<CompositeLayerProps> {
   data: MarkerThin[]
   positionOffset?: [x: number, y: number]
 }
@@ -15,7 +15,8 @@ export class GenshinMarkerLayer extends CompositeLayer<GenshinMarkerLayerProps> 
   }
 
   override renderLayers(): Layer | null | LayersList {
-    const [ox = 0, oy = 0] = this.props.positionOffset ?? []
+    const { positionOffset = [0, 0] as const } = this.props
+    const [ox = 0, oy = 0] = positionOffset
     return [
       new ScatterplotLayer<MarkerThin>({
         id: 'GenshinMarkerLayer-Scatterplot',
@@ -26,6 +27,9 @@ export class GenshinMarkerLayer extends CompositeLayer<GenshinMarkerLayerProps> 
         radiusMinPixels: 4,
         radiusMaxPixels: 12,
         pickable: true,
+        updateTriggers: {
+          getPosition: [positionOffset],
+        },
       }),
     ]
   }
