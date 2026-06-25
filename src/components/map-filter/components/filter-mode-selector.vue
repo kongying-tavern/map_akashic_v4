@@ -8,10 +8,10 @@ const filterOptions = [
 </script>
 
 <template>
-  <div class="relative flex mb-1 rounded-md" :style="{ '--index': selectedIndex }">
+  <div class="relative flex mb-1" :style="{ '--index': selectedIndex }">
     <!-- 滑块 -->
     <div
-      class="absolute inset-y-0 w-1/2 rounded-md bg-[--color-brand-1] shadow transition-transform duration-150 ease-in-out"
+      class="absolute inset-y-0 w-1/2 rounded-lg bg-[--color-brand-1] shadow transition-transform duration-150 ease-in-out"
       style="transform: translateX(calc(var(--index) * 100%))"
     />
 

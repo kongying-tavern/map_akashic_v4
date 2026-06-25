@@ -21,7 +21,7 @@ const selectedFilterModeIndex = ref(0)
   <div
     :class="[
       'map-filter',
-      'w-96 h-120 p-1 rounded-lg flex flex-col bg-[--bg] shadow-lg text-[--text-color]',
+      'w-96 h-120 p-1 rounded-xl flex flex-col bg-[--bg] shadow-[0_0_2px_var(--gl-1),0_0_0.5rem_var(--gl-1)] text-[--text-color]',
     ]"
   >
     <!-- 筛选类型 -->

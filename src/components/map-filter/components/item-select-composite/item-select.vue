@@ -190,8 +190,8 @@ function getTypeSelectedCount(typeId: number | undefined) {
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col overflow-hidden rounded-md border border-[--gl-2] bg-[--gl-0]">
-    <div class="shrink-0 p-2">
+  <div class="flex-1 flex flex-col overflow-hidden rounded-lg border border-[--gl-1] bg-[--gl-0]">
+    <div class="shrink-0 p-2 border-b border-[--gl-1]">
       <div
         class="flex h-8 items-center gap-1.5 rounded-md border border-[--gl-2] bg-[--gl-1] px-2 transition-colors focus-within:border-[--color-brand-5]"
       >
@@ -207,7 +207,7 @@ function getTypeSelectedCount(typeId: number | undefined) {
 
     <div class="flex-1 flex overflow-hidden">
       <ScrollAreaRoot
-        class="w-40 shrink-0 overflow-hidden [--scrollbar-size:0.5rem] border-r border-[--gl-2]"
+        class="w-40 shrink-0 overflow-hidden [--scrollbar-size:0.5rem] border-r border-[--gl-1]"
       >
         <ScrollAreaViewport class="w-full h-full">
           <IconSelectItem
@@ -272,7 +272,7 @@ function getTypeSelectedCount(typeId: number | undefined) {
       </ScrollAreaRoot>
 
       <ScrollAreaRoot class="flex-1 overflow-hidden [--scrollbar-size:0.5rem]">
-        <ScrollAreaViewport class="w-full h-full">
+        <ScrollAreaViewport class="w-full h-full" style="container-type: size">
           <template v-if="itemLoading">
             <div v-for="i in 8" :key="i" class="h-10 flex items-center gap-2 px-3">
               <div class="size-6 rounded-full animate-pulse bg-[--gl-2]" />
@@ -280,12 +280,12 @@ function getTypeSelectedCount(typeId: number | undefined) {
             </div>
           </template>
           <template v-else-if="!areaIdList?.length">
-            <div class="h-full flex items-center justify-center text-sm text-[--gl-6]">
+            <div class="h-100cqh flex items-center justify-center text-sm text-[--gl-6]">
               请选择地区
             </div>
           </template>
           <template v-else-if="itemList.length === 0">
-            <div class="h-full flex items-center justify-center text-sm text-[--gl-6]">
+            <div class="h-100cqh flex items-center justify-center text-sm text-[--gl-6]">
               未检索到任何物品
             </div>
           </template>
