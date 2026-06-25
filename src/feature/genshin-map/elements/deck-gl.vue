@@ -1,14 +1,16 @@
 <script lang="ts">
 import type { View } from 'deck.gl'
+
 type ViewOrViews = View | View[]
+export interface DeckGlProps<ViewT extends ViewOrViews> {
+  views: ViewT
+}
 </script>
 
 <script setup lang="ts" generic="ViewT extends ViewOrViews">
 import { Deck } from 'deck.gl'
 
-const props = defineProps<{
-  views: ViewT
-}>()
+const props = defineProps<DeckGlProps<ViewT>>()
 
 const canvasRef = useTemplateRef('canvasRef')
 const deckRef = shallowRef<Deck<ViewT> | null>(null)
@@ -21,6 +23,10 @@ onMounted(() => {
   const deck = new Deck<ViewT>({
     canvas,
     views: props.views,
+    pickAsync: 'async',
+    getCursor: ({ isDragging, isHovering }) => {
+      return isDragging ? 'grabbing' : isHovering ? 'pointer' : 'default'
+    },
   })
 
   let rIC = -1

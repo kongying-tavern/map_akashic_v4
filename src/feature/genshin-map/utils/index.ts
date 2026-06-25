@@ -14,6 +14,14 @@ export const removeLayerFrom = (
 
 export const addLayerFrom = (deck: Deck<OrthographicView>, index: number, layer: GenshinLayer) => {
   const copyLayers = [...(deck.props.layers ?? [])]
+  const sameIdIndex = copyLayers.findIndex((item) => {
+    if (!item) return false
+    if (Array.isArray(item)) return false
+    return item.id === layer.id
+  })
+  if (sameIdIndex > -1) {
+    copyLayers[sameIdIndex] = null
+  }
   copyLayers[index] = layer
   deck.setProps({ layers: copyLayers })
 }
