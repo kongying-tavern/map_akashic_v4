@@ -38,6 +38,21 @@ declare module 'vue-router/auto-routes' {
       '/development',
       Record<never, never>,
       Record<never, never>,
+      | '/development/'
+      | '/development/map-filter'
+    >,
+    '/development/': RouteRecordInfo<
+      '/development/',
+      '/development',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/development/map-filter': RouteRecordInfo<
+      '/development/map-filter',
+      '/development/map-filter',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/map/': RouteRecordInfo<
@@ -83,6 +98,20 @@ declare module 'vue-router/auto-routes' {
     'src/pages/development.vue': {
       routes:
         | '/development'
+        | '/development/'
+        | '/development/map-filter'
+      views:
+        | 'default'
+    }
+    'src/pages/development/index.vue': {
+      routes:
+        | '/development/'
+      views:
+        | never
+    }
+    'src/pages/development/map-filter.vue': {
+      routes:
+        | '/development/map-filter'
       views:
         | never
     }
