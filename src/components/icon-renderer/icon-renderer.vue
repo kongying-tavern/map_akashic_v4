@@ -39,7 +39,6 @@ const revokeUrl = () => {
 }
 
 const loadAsset = async (url: string) => {
-  console.log('loadAsset')
   // 取消之前的请求
   abortController?.abort()
   abortController = new AbortController()
