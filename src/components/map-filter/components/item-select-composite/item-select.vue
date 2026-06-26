@@ -1,19 +1,10 @@
 <script setup lang="ts">
 import { useRequest, useWatcher } from 'alova/client'
-import {
-  ListboxContent,
-  ListboxItem,
-  ListboxRoot,
-  ListboxVirtualizer,
-  ScrollAreaRoot,
-  ScrollAreaViewport,
-  ScrollAreaScrollbar,
-  ScrollAreaThumb,
-} from 'reka-ui'
 import Api from '@/api'
 import type { ItemSearchVo, ItemVo } from '@/api/services/main/globals'
-import { RegularBulletedList, RegularCheckList, RegularSearch } from '@/ui/g-icons'
-import IconSelectItem from './item-selec-item.vue'
+import { RegularSearch } from '@/ui/g-icons'
+import ItemSelectItemList from './item-select-item-list.vue'
+import ItemSelectTypeList from './item-select-type-list.vue'
 
 const props = defineProps<{
   areaIdList?: number[]
@@ -94,19 +85,6 @@ onError((error) => {
   if (error instanceof AreaEmptyError) return
 })
 
-// 物品 id -> 物品索引 Map
-const itemIdMap = computed(() => {
-  const map = new Map<number, ItemVo>()
-  const list = rawItemList.value
-  for (let i = 0; i < list.length; i++) {
-    const item = list[i]
-    if (item.id !== undefined) {
-      map.set(item.id, item)
-    }
-  }
-  return map
-})
-
 // 切换左侧类型时前端筛选物品
 const itemList = computed(() => {
   const typeId = selectedTypeIndex.value
@@ -168,10 +146,6 @@ function toggleItemSelect(itemId: number | undefined) {
   }
 }
 
-function isItemSelected(itemId: number | undefined) {
-  return itemId !== undefined && selectedItemIds.value.includes(itemId)
-}
-
 // 计算每个类型下已选物品的数量
 const typeSelectedCountMap = computed(() => {
   const map = new Map<number, number>()
@@ -213,107 +187,21 @@ function getTypeSelectedCount(typeId: number | undefined) {
     </div>
 
     <div class="flex-1 flex overflow-hidden">
-      <ScrollAreaRoot
-        class="w-40 shrink-0 overflow-hidden [--scrollbar-size:0.5rem] border-r border-[--gl-1]"
-      >
-        <ScrollAreaViewport class="w-full h-full">
-          <IconSelectItem
-            :item="{ id: -1, name: '已选物品' }"
-            :selected="selectedTypeIndex === -1"
-            @click="selectedTypeIndex = -1"
-          >
-            <template #icon>
-              <RegularCheckList class="size-6 p-1" />
-            </template>
-            <template v-if="getTypeSelectedCount(-1) > 0" #suffix>
-              <span
-                class="ml-auto shrink-0 rounded-full bg-[--color-brand-5] px-1.5 text-xs leading-5 text-white"
-              >
-                {{ getTypeSelectedCount(-1) }}
-              </span>
-            </template>
-          </IconSelectItem>
-          <IconSelectItem
-            :item="{ id: -2, name: '全部分类' }"
-            :selected="selectedTypeIndex === -2"
-            @click="selectedTypeIndex = -2"
-          >
-            <template #icon>
-              <RegularBulletedList class="size-6 p-1" />
-            </template>
-            <template v-if="getTypeSelectedCount(-2) > 0" #suffix>
-              <span
-                class="ml-auto shrink-0 rounded-full bg-[--color-brand-5] px-1.5 text-xs leading-5 text-white"
-              >
-                {{ getTypeSelectedCount(-2) }}
-              </span>
-            </template>
-          </IconSelectItem>
-          <template v-if="typeLoading">
-            <div v-for="i in 5" :key="i" class="h-10 flex items-center gap-2 px-3">
-              <div class="size-6 rounded-full animate-pulse bg-[--gl-2]" />
-              <div class="h-4 flex-1 rounded animate-pulse bg-[--gl-2]" />
-            </div>
-          </template>
-          <template v-else>
-            <IconSelectItem
-              v-for="itemType in itemTypeList"
-              :key="itemType.id"
-              :item="itemType"
-              :selected="selectedTypeIndex === itemType.id"
-              @click="selectedTypeIndex = itemType.id"
-            >
-              <template v-if="getTypeSelectedCount(itemType.id) > 0" #suffix>
-                <span
-                  class="ml-auto shrink-0 rounded-full bg-[--color-brand-5] px-1.5 text-xs leading-5 text-white"
-                >
-                  {{ getTypeSelectedCount(itemType.id) }}
-                </span>
-              </template>
-            </IconSelectItem>
-          </template>
-        </ScrollAreaViewport>
-        <ScrollAreaScrollbar class="w-[--scrollbar-size]" orientation="vertical">
-          <ScrollAreaThumb class="rounded-full bg-gray-300/50 hover:bg-gray-400/50" />
-        </ScrollAreaScrollbar>
-      </ScrollAreaRoot>
+      <ItemSelectTypeList
+        :item-type-list="itemTypeList"
+        :selected-type-index="selectedTypeIndex"
+        :loading="typeLoading"
+        :get-type-selected-count="getTypeSelectedCount"
+        @select="(id: number) => (selectedTypeIndex = id)"
+      />
 
-      <ListboxRoot class="flex-1 overflow-hidden" style="scrollbar-width: thin">
-        <ListboxContent class="h-full overflow-y-auto" style="scrollbar-width: thin">
-          <template v-if="itemLoading">
-            <div v-for="i in 8" :key="i" class="h-10 flex items-center gap-2 px-3">
-              <div class="size-6 rounded-full animate-pulse bg-[--gl-2]" />
-              <div class="h-4 flex-1 rounded animate-pulse bg-[--gl-2]" />
-            </div>
-          </template>
-          <template v-else-if="!areaIdList?.length">
-            <div class="h-full flex items-center justify-center text-sm text-[--gl-6]">
-              请选择地区
-            </div>
-          </template>
-          <template v-else-if="itemList.length === 0">
-            <div class="h-full flex items-center justify-center text-sm text-[--gl-6]">
-              未检索到任何物品
-            </div>
-          </template>
-          <ListboxVirtualizer
-            v-else
-            :options="itemList"
-            :estimate-size="40"
-            :text-content="(item: ItemVo) => item.name ?? ''"
-          >
-            <template #default="{ option }">
-              <ListboxItem
-                :value="option.id!"
-                class="w-full"
-                @select.prevent="() => toggleItemSelect(option.id)"
-              >
-                <IconSelectItem :item="option" :selected="isItemSelected(option.id)" />
-              </ListboxItem>
-            </template>
-          </ListboxVirtualizer>
-        </ListboxContent>
-      </ListboxRoot>
+      <ItemSelectItemList
+        :item-list="itemList"
+        :selected-ids="selectedItemIds"
+        :loading="itemLoading"
+        :has-area="!!areaIdList?.length"
+        @toggle="toggleItemSelect"
+      />
     </div>
   </div>
 </template>
