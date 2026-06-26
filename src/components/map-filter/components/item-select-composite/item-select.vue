@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { Method } from 'alova'
 import { useRequest, useWatcher } from 'alova/client'
-import { ScrollAreaRoot, ScrollAreaViewport, ScrollAreaScrollbar, ScrollAreaThumb } from 'reka-ui'
+import {
+  ListboxContent,
+  ListboxItem,
+  ListboxRoot,
+  ListboxVirtualizer,
+  ScrollAreaRoot,
+  ScrollAreaViewport,
+  ScrollAreaScrollbar,
+  ScrollAreaThumb,
+} from 'reka-ui'
 import Api from '@/api'
 import type { ItemSearchVo, ItemVo } from '@/api/services/main/globals'
 import { RegularBulletedList, RegularCheckList, RegularSearch } from '@/ui/g-icons'
@@ -12,14 +20,14 @@ const props = defineProps<{
 }>()
 
 const selectedTypeIndex = ref<number | undefined>(-2)
-const selectedItemIdSet = ref<Set<number>>(new Set())
+const selectedItemIds = ref<number[]>([])
 const searchText = ref('')
 
 // 地区变化时重置已选物品
 watch(
   () => props.areaIdList,
   () => {
-    selectedItemIdSet.value = new Set()
+    selectedItemIds.value = []
     searchText.value = ''
   },
 )
@@ -109,11 +117,11 @@ const itemList = computed(() => {
 
   // -1: 已选物品
   if (typeId === -1) {
-    const set = selectedItemIdSet.value
+    const selectedSet = new Set(selectedItemIds.value)
     const result: ItemVo[] = []
     for (let i = 0; i < allItems.length; i++) {
       const item = allItems[i]
-      if (item.id !== undefined && set.has(item.id)) {
+      if (item.id !== undefined && selectedSet.has(item.id)) {
         result.push(item)
       }
     }
@@ -152,26 +160,25 @@ const itemList = computed(() => {
 // 切换物品选中状态
 function toggleItemSelect(itemId: number | undefined) {
   if (itemId === undefined) return
-  const set = new Set(selectedItemIdSet.value)
-  if (set.has(itemId)) {
-    set.delete(itemId)
+  const idx = selectedItemIds.value.indexOf(itemId)
+  if (idx === -1) {
+    selectedItemIds.value = [...selectedItemIds.value, itemId]
   } else {
-    set.add(itemId)
+    selectedItemIds.value = selectedItemIds.value.filter((id) => id !== itemId)
   }
-  selectedItemIdSet.value = set
 }
 
 function isItemSelected(itemId: number | undefined) {
-  return itemId !== undefined && selectedItemIdSet.value.has(itemId)
+  return itemId !== undefined && selectedItemIds.value.includes(itemId)
 }
 
 // 计算每个类型下已选物品的数量
 const typeSelectedCountMap = computed(() => {
   const map = new Map<number, number>()
-  const set = selectedItemIdSet.value
+  const selectedSet = new Set(selectedItemIds.value)
 
   for (const item of rawItemList.value) {
-    if (item.id !== undefined && set.has(item.id) && item.typeIdList) {
+    if (item.id !== undefined && selectedSet.has(item.id) && item.typeIdList) {
       for (const typeId of item.typeIdList) {
         map.set(typeId, (map.get(typeId) || 0) + 1)
       }
@@ -184,7 +191,7 @@ const typeSelectedCountMap = computed(() => {
 // 获取类型已选数量
 function getTypeSelectedCount(typeId: number | undefined) {
   if (typeId === undefined) return 0
-  if (typeId === -1 || typeId === -2) return selectedItemIdSet.value.size
+  if (typeId === -1 || typeId === -2) return selectedItemIds.value.length
   return typeSelectedCountMap.value.get(typeId) || 0
 }
 </script>
@@ -271,8 +278,8 @@ function getTypeSelectedCount(typeId: number | undefined) {
         </ScrollAreaScrollbar>
       </ScrollAreaRoot>
 
-      <ScrollAreaRoot class="flex-1 overflow-hidden [--scrollbar-size:0.5rem]">
-        <ScrollAreaViewport class="w-full h-full" style="container-type: size">
+      <ListboxRoot class="flex-1 overflow-hidden" style="scrollbar-width: thin">
+        <ListboxContent class="h-full overflow-y-auto" style="scrollbar-width: thin">
           <template v-if="itemLoading">
             <div v-for="i in 8" :key="i" class="h-10 flex items-center gap-2 px-3">
               <div class="size-6 rounded-full animate-pulse bg-[--gl-2]" />
@@ -280,29 +287,33 @@ function getTypeSelectedCount(typeId: number | undefined) {
             </div>
           </template>
           <template v-else-if="!areaIdList?.length">
-            <div class="h-100cqh flex items-center justify-center text-sm text-[--gl-6]">
+            <div class="h-full flex items-center justify-center text-sm text-[--gl-6]">
               请选择地区
             </div>
           </template>
           <template v-else-if="itemList.length === 0">
-            <div class="h-100cqh flex items-center justify-center text-sm text-[--gl-6]">
+            <div class="h-full flex items-center justify-center text-sm text-[--gl-6]">
               未检索到任何物品
             </div>
           </template>
-          <template v-else>
-            <IconSelectItem
-              v-for="item in itemList"
-              :key="item.id"
-              :item="item"
-              :selected="isItemSelected(item.id)"
-              @click="toggleItemSelect(item.id)"
-            />
-          </template>
-        </ScrollAreaViewport>
-        <ScrollAreaScrollbar class="w-[--scrollbar-size]" orientation="vertical">
-          <ScrollAreaThumb class="rounded-full bg-gray-300/50 hover:bg-gray-400/50" />
-        </ScrollAreaScrollbar>
-      </ScrollAreaRoot>
+          <ListboxVirtualizer
+            v-else
+            :options="itemList"
+            :estimate-size="40"
+            :text-content="(item: ItemVo) => item.name ?? ''"
+          >
+            <template #default="{ option }">
+              <ListboxItem
+                :value="option.id!"
+                class="w-full"
+                @select.prevent="() => toggleItemSelect(option.id)"
+              >
+                <IconSelectItem :item="option" :selected="isItemSelected(option.id)" />
+              </ListboxItem>
+            </template>
+          </ListboxVirtualizer>
+        </ListboxContent>
+      </ListboxRoot>
     </div>
   </div>
 </template>
