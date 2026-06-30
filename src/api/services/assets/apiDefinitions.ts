@@ -42,15 +42,43 @@ const openDir = (
   return dirPromise
 }
 
+const getLockName = (dir: FileSystemDirectoryHandle, filename: string) =>
+  `asset-cache:${dir.name}/${filename}`
+
+const withCacheLock = <T>(
+  dir: FileSystemDirectoryHandle,
+  filename: string,
+  callback: () => Promise<T>,
+) => navigator.locks.request(getLockName(dir, filename), callback)
+
 const writeCache = async (dir: FileSystemDirectoryHandle, filename: string, data: Blob) => {
-  const handle = await dir.getFileHandle(filename, { create: true })
-  const stream = await handle.createWritable()
-  try {
-    await stream.write(data)
-    await stream.close()
-  } catch {
-    await stream.abort()
-  }
+  await withCacheLock(dir, filename, async () => {
+    const handle = await dir.getFileHandle(filename, { create: true })
+    const stream = await handle.createWritable()
+    try {
+      await stream.write(data)
+      await stream.close()
+    } catch (error) {
+      console.error('[writeCache] 写入失败:', error)
+      await stream.abort()
+    }
+  })
+}
+
+const writeCacheSync = async (dir: FileSystemDirectoryHandle, filename: string, data: Blob) => {
+  await withCacheLock(dir, filename, async () => {
+    const handle = await dir.getFileHandle(filename, { create: true })
+    const accessHandle = await handle.createSyncAccessHandle()
+    try {
+      const buffer = await data.arrayBuffer()
+      accessHandle.write(buffer)
+      accessHandle.flush()
+    } catch (error) {
+      console.error('[writeCacheSync] 写入失败:', error)
+    } finally {
+      accessHandle.close()
+    }
+  })
 }
 
 /** 获取 tile 图片资源 */
@@ -121,7 +149,8 @@ export const getCacheableAsset = async (url: string, signal?: AbortSignal) => {
   signal?.throwIfAborted()
 
   // 不需要等待缓存写入
-  writeCache(dir, filename, blob)
+  if (globalThis.document) writeCache(dir, filename, blob)
+  else writeCacheSync(dir, filename, blob)
 
   return blob
 }
