@@ -55,12 +55,12 @@ export default defineConfig(({ mode }) => {
         configure: (proxy, _options) => {
           proxy.on('proxyRes', (_proxyReq, { url = '' }) => {
             const rewritten = url.replace(item.match, '')
-            Logger.info(`${url} ${style('green', '--√->')} ${item.proxy}${rewritten}`)
+            Logger.info(`${url}\n${style('green', '------√------->')} ${item.proxy}${rewritten}`)
           })
           proxy.on('error', (err, { url = '' }) => {
             const rewritten = url.replace(item.match, '')
             Logger.info(
-              `${url} ${style('red', '--×->')} ${item.proxy}${rewritten} ${style('red', err.message)}`,
+              `${url}\n${style('red', '------×------->')} ${item.proxy}${rewritten} ${style('red', err.message)}`,
             )
           })
         },
