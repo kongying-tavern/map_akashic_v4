@@ -40,6 +40,7 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | '/development/'
       | '/development/map-filter'
+      | '/development/marker-texture-render'
     >,
     '/development/': RouteRecordInfo<
       '/development/',
@@ -51,6 +52,13 @@ declare module 'vue-router/auto-routes' {
     '/development/map-filter': RouteRecordInfo<
       '/development/map-filter',
       '/development/map-filter',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/development/marker-texture-render': RouteRecordInfo<
+      '/development/marker-texture-render',
+      '/development/marker-texture-render',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -100,6 +108,7 @@ declare module 'vue-router/auto-routes' {
         | '/development'
         | '/development/'
         | '/development/map-filter'
+        | '/development/marker-texture-render'
       views:
         | 'default'
     }
@@ -112,6 +121,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/development/map-filter.vue': {
       routes:
         | '/development/map-filter'
+      views:
+        | never
+    }
+    'src/pages/development/marker-texture-render.vue': {
+      routes:
+        | '/development/marker-texture-render'
       views:
         | never
     }

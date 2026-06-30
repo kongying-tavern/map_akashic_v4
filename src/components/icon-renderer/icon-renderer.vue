@@ -90,7 +90,7 @@ onUnmounted(() => {
       v-if="cachedUrl"
       v-show="status === Status.SUCCESS"
       :src="cachedUrl"
-      class="block"
+      class="block w-full h-full object-contain"
       :class="classes?.img"
       @load="status = Status.SUCCESS"
       @error="status = Status.ERROR"
