@@ -2,6 +2,12 @@
 import { useUrlSearchParams } from '@vueuse/core'
 import MapFilter from '@/components/map-filter/map-filter.vue'
 
+definePage({
+  meta: {
+    title: 'map-filter',
+  },
+})
+
 const params = useUrlSearchParams<{
   selectedAreaCode?: string
 }>('history')
