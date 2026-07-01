@@ -53,22 +53,28 @@ const withCacheLock = <T>(
 
 const writeCache = async (dir: FileSystemDirectoryHandle, filename: string, data: Blob) => {
   await withCacheLock(dir, filename, async () => {
-    const handle = await dir.getFileHandle(filename, { create: true })
-    const stream = await handle.createWritable()
     try {
-      await stream.write(data)
+      const handle = await dir.getFileHandle(filename, { create: true })
+      const stream = await handle.createWritable()
+      await stream.write(data).catch(() => stream.abort())
       await stream.close()
     } catch (error) {
       console.error('[writeCache] 写入失败:', error)
-      await stream.abort()
     }
   })
 }
 
 const writeCacheSync = async (dir: FileSystemDirectoryHandle, filename: string, data: Blob) => {
   await withCacheLock(dir, filename, async () => {
-    const handle = await dir.getFileHandle(filename, { create: true })
-    const accessHandle = await handle.createSyncAccessHandle()
+    let accessHandle: FileSystemSyncAccessHandle
+    try {
+      const handle = await dir.getFileHandle(filename, { create: true })
+      accessHandle = await handle.createSyncAccessHandle()
+    } catch (error) {
+      console.error(`[writeCacheSync] 获取句柄失败 ("${dir.name}/${filename}")`, error)
+      return
+    }
+
     try {
       const buffer = await data.arrayBuffer()
       accessHandle.write(buffer)
@@ -77,6 +83,7 @@ const writeCacheSync = async (dir: FileSystemDirectoryHandle, filename: string, 
       console.error('[writeCacheSync] 写入失败:', error)
     } finally {
       accessHandle.close()
+      dir.removeEntry(filename)
     }
   })
 }
