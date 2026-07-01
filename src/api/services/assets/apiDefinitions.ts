@@ -133,7 +133,8 @@ export const getTile = async (
 }
 
 /** 缓存优先的资源请求 */
-export const getCacheableAsset = async (url: string, signal?: AbortSignal) => {
+export const getCacheableAsset = async (url: string, options?: { signal?: AbortSignal }) => {
+  const { signal } = options ?? {}
   signal?.throwIfAborted()
 
   const { path, filename } = getUrlMeta(url)
