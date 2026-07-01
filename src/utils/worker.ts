@@ -17,6 +17,7 @@ export type WorkerMessage<Input, Output> =
       type: 'progress'
       id: string
       value: number
+      message?: string
     }
   | {
       type: 'response'
@@ -37,7 +38,7 @@ export interface InvokeWorkerOptions {
   /** 取消信号，用于中断 worker 的任务 */
   signal?: AbortSignal
   /** 进度回调，接收 worker 汇报的进度值 */
-  onProgress?: (value: number) => void
+  onProgress?: (value: number, message?: string) => void
 }
 
 /**
@@ -49,7 +50,7 @@ export interface HandleRequestContext<Input, Output> {
   /** 发送最终结果 */
   send: (result: Output, transfer?: Transferable[]) => void
   /** 汇报当前任务进度 */
-  progress: (value: number) => void
+  progress: (value: number, message?: string) => void
   /** 中断信号 */
   signal: AbortSignal
 }
@@ -100,7 +101,7 @@ export function invokeWorker<Input, Output>(
       if (data.id !== requestId) return
 
       if (data.type === 'progress') {
-        onProgress?.(data.value)
+        onProgress?.(data.value, data.message)
         return
       }
 
@@ -207,12 +208,13 @@ export function handleRequest<Input, Output>(
         )
       }
 
-      const progress = (value: number) => {
+      const progress = (value: number, message?: string) => {
         if (isSent) return
         globalThis.postMessage({
           type: 'progress',
           id,
           value,
+          message,
         } satisfies Extract<WorkerMessage<Input, Output>, { type: 'progress' }>)
       }
 
