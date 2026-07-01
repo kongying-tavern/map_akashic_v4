@@ -49,7 +49,7 @@ const loadAsset = async (url: string) => {
   status.value = Status.LOADING
 
   try {
-    const blob = await Api.assets.getCacheableAsset(url, abortController.signal)
+    const blob = await Api.assets.getCacheableAsset(url, { signal: abortController.signal })
     abortController.signal.throwIfAborted()
 
     cachedUrl.value = URL.createObjectURL(blob)
