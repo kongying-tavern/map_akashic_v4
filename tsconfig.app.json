@@ -10,7 +10,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["vite/client", "vue-router/auto"],
+    "types": ["vite/client", "vue-router/auto", "@webgpu/types"],
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
