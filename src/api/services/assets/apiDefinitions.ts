@@ -83,7 +83,6 @@ const writeCacheSync = async (dir: FileSystemDirectoryHandle, filename: string, 
       console.error('[writeCacheSync] 写入失败:', error)
     } finally {
       accessHandle.close()
-      dir.removeEntry(filename)
     }
   })
 }
@@ -133,25 +132,59 @@ export const getTile = async (
 }
 
 /** 缓存优先的资源请求 */
-export const getCacheableAsset = async (url: string, options?: { signal?: AbortSignal }) => {
-  const { signal } = options ?? {}
+export const getCacheableAsset = async (
+  url: string,
+  options?: { signal?: AbortSignal; cacheError?: boolean },
+) => {
+  const { signal, cacheError = false } = options ?? {}
   signal?.throwIfAborted()
 
   const { path, filename } = getUrlMeta(url)
+  const errorFilename = `${filename}__error__.txt`
   const dir = await openDir(path)
   const cache = await dir.getFileHandle(filename).catch(() => null)
   if (cache) {
     return cache.getFile()
   }
 
+  // 检测错误缓存
+  if (cacheError) {
+    const errorCache = await dir.getFileHandle(errorFilename).catch(() => null)
+    if (errorCache) {
+      const file = await errorCache.getFile()
+      const message = await file.text()
+      throw new Error(message)
+    }
+  }
+
   // 缓存 miss 的情况
-  const res = await fetch(url, {
-    mode: 'cors',
-    method: 'GET',
-    signal,
-  })
+  let res: Response
+  try {
+    res = await fetch(url, {
+      mode: 'cors',
+      method: 'GET',
+      signal,
+    })
+  } catch (error) {
+    // 请求失败时缓存错误消息
+    if (cacheError && !signal?.aborted) {
+      const message = error instanceof Error ? error.message : String(error)
+      const errorBlob = new Blob([message], { type: 'text/plain' })
+      if (globalThis.document) writeCache(dir, errorFilename, errorBlob)
+      else writeCacheSync(dir, errorFilename, errorBlob)
+    }
+    throw error
+  }
   // 请求失败直接不走缓存
-  if (!res.ok) throw new Error(res.statusText || '请求失败')
+  if (!res.ok) {
+    const message = res.statusText || '请求失败'
+    if (cacheError) {
+      const errorBlob = new Blob([message], { type: 'text/plain' })
+      if (globalThis.document) writeCache(dir, errorFilename, errorBlob)
+      else writeCacheSync(dir, errorFilename, errorBlob)
+    }
+    throw new Error(message)
+  }
 
   const blob = await res.blob()
   signal?.throwIfAborted()
