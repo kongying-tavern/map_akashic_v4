@@ -28,7 +28,10 @@ export const useIconStore = defineStore('icon', () => {
     return map
   })
 
-  const render = async (iconList: IconVo[]) => {
+  const render = async (
+    iconList: IconVo[],
+    onProgress?: (value: number, message?: string) => void,
+  ) => {
     if (!worker) {
       worker = new RenderWorker({ name: 'markerTextureRender' })
     }
@@ -39,12 +42,13 @@ export const useIconStore = defineStore('icon', () => {
       if (id === undefined || !url) continue
       sendList.push({ id, url })
     }
-    const res = await invokeWorker<RenderRequest, RenderResult>(worker, {
-      data: sendList,
-      render: {
-        background: [0, 0, 0, 255],
+    const res = await invokeWorker<RenderRequest, RenderResult>(
+      worker,
+      {
+        data: sendList,
       },
-    })
+      { onProgress },
+    )
     return res
   }
 

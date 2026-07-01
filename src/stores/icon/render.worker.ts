@@ -1,4 +1,4 @@
-import type { IconLayerProps } from 'deck.gl'
+import type { IconLayerProps } from '@deck.gl/layers'
 import { getCacheableAsset } from '@/api/services/assets/apiDefinitions'
 import unknownIconUrl from '@/assets/unknown.png?url'
 import { createAsyncConcurrencyFactory } from '@/utils/common'
@@ -10,7 +10,7 @@ const DEFAULT_SIZE = 64
 const DEFAULT_GAP = 1
 const DEFAULT_BACKGROUND: Color = [0, 0, 0, 0]
 
-type IconMapping = Exclude<Required<IconLayerProps>['iconMapping'], string>
+export type IconMapping = Exclude<Required<IconLayerProps>['iconMapping'], string>
 type Color = [R: number, G: number, B: number, A: number]
 
 interface RenderOptions {
@@ -118,7 +118,9 @@ const calculateLayout = ({
 
 // ==============================     core     ==============================
 handleRequest<RenderRequest, RenderResult>(
-  async ({ data: { data, state, render }, send, signal }) => {
+  async ({ data: { data, state, render }, send, progress, signal }) => {
+    progress(0, '初始化渲染环境')
+
     // 校验 fallback 资源
     const fallbackImageBitmap = await ensureFallback()
 
@@ -172,7 +174,30 @@ handleRequest<RenderRequest, RenderResult>(
       return bmp
     }, CONCURRENCY_LIMIT)
 
-    const settled = await Promise.allSettled(data.map(({ url }) => getIcon(url)))
+    const settled = await (async () => {
+      const total = data.length
+      if (total === 0) {
+        progress(80, '无图标需要下载')
+        return [] as PromiseSettledResult<ImageBitmap>[]
+      }
+      progress(0, `准备下载 ${total} 个图标`)
+      let finished = 0
+      const tasks = data.map(({ url }) =>
+        getIcon(url).then(
+          (value): PromiseSettledResult<ImageBitmap> => {
+            finished += 1
+            progress(Math.round((finished / total) * 80), `下载图标中 ${finished}/${total}`)
+            return { status: 'fulfilled', value }
+          },
+          (reason): PromiseSettledResult<ImageBitmap> => {
+            finished += 1
+            progress(Math.round((finished / total) * 80), `下载图标中 ${finished}/${total}`)
+            return { status: 'rejected', reason }
+          },
+        ),
+      )
+      return Promise.all(tasks)
+    })()
 
     // 每个图标使用的 bitmap（失败时降级为 fallback）
     const bitmaps: ImageBitmap[] = settled.map((r) =>
@@ -201,6 +226,7 @@ handleRequest<RenderRequest, RenderResult>(
     }
 
     // ============================== WebGPU 精灵矩阵图渲染 ==============================
+    progress(82, '初始化 GPU 画布与管线')
     const atlasWidth = Math.max(1, layout.cols * pitch - gap)
     const atlasHeight = Math.max(1, layout.rows * pitch - gap)
     const canvas = new OffscreenCanvas(atlasWidth, atlasHeight)
@@ -277,6 +303,7 @@ handleRequest<RenderRequest, RenderResult>(
     device.queue.writeBuffer(uvBuffer, 0, uvs)
 
     // 收集所有待绘制的图标（第一行的 fallback + 图标行的成功项）
+    progress(86, '构建图标顶点数据')
     const iconsToDraw: { bmp: ImageBitmap; cellX: number; cellY: number }[] = []
     iconsToDraw.push({ bmp: fallbackImageBitmap, cellX: 0, cellY: 0 })
     for (let i = 0; i < data.length; i++) {
@@ -327,6 +354,7 @@ handleRequest<RenderRequest, RenderResult>(
     }
 
     // 每个图标创建独立纹理与 bindGroup
+    progress(90, '上传纹理数据')
     const iconTextures: GPUTexture[] = []
     const bindGroups: GPUBindGroup[] = []
     const bindGroupLayout = pipeline.getBindGroupLayout(0)
@@ -357,6 +385,7 @@ handleRequest<RenderRequest, RenderResult>(
     }
 
     // 编码并提交
+    progress(94, '提交 GPU 渲染指令')
     const encoder = device.createCommandEncoder()
     const [br, bgc, bb, ba] = background
     const pass = encoder.beginRenderPass({
@@ -383,6 +412,7 @@ handleRequest<RenderRequest, RenderResult>(
     device.queue.submit([encoder.finish()])
 
     // 等待 GPU 提交任务完成后再回读，避免读取到未完成的纹理
+    progress(97, '等待 GPU 渲染完成')
     await device.queue.onSubmittedWorkDone()
 
     // 清理临时资源
@@ -391,6 +421,7 @@ handleRequest<RenderRequest, RenderResult>(
     uvBuffer.destroy()
 
     const texture = canvas.transferToImageBitmap()
+    progress(100, '渲染完成')
     send({ texture, mapping }, [texture])
   },
 )
