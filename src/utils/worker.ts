@@ -14,6 +14,11 @@ export type WorkerMessage<Input, Output> =
       message?: string
     }
   | {
+      type: 'progress'
+      id: string
+      value: number
+    }
+  | {
       type: 'response'
       id: string
       error: false
@@ -31,6 +36,22 @@ export interface InvokeWorkerOptions {
   timeout?: number
   /** 取消信号，用于中断 worker 的任务 */
   signal?: AbortSignal
+  /** 进度回调，接收 worker 汇报的进度值 */
+  onProgress?: (value: number) => void
+}
+
+/**
+ * handleRequest 中传递给业务处理函数的上下文对象
+ */
+export interface HandleRequestContext<Input, Output> {
+  /** 请求携带的数据 */
+  data: Input
+  /** 发送最终结果 */
+  send: (result: Output, transfer?: Transferable[]) => void
+  /** 汇报当前任务进度 */
+  progress: (value: number) => void
+  /** 中断信号 */
+  signal: AbortSignal
 }
 
 const ABORT_MESSAGE = 'Worker 调用已取消'
@@ -55,7 +76,7 @@ export function invokeWorker<Input, Output>(
 ): Promise<Output> {
   return new Promise<Output>((resolve, reject) => {
     const requestId = crypto.randomUUID()
-    const { signal } = options ?? {}
+    const { signal, onProgress } = options ?? {}
     let timer: ReturnType<typeof setTimeout> | undefined
 
     const cleanup = () => {
@@ -75,8 +96,15 @@ export function invokeWorker<Input, Output>(
 
     const handler = ({
       data,
-    }: MessageEvent<Extract<WorkerMessage<Input, Output>, { type: 'response' }>>) => {
-      if (data.type !== 'response' || requestId !== data.id) return
+    }: MessageEvent<Extract<WorkerMessage<Input, Output>, { type: 'response' | 'progress' }>>) => {
+      if (data.id !== requestId) return
+
+      if (data.type === 'progress') {
+        onProgress?.(data.value)
+        return
+      }
+
+      if (data.type !== 'response') return
 
       cleanup()
 
@@ -111,11 +139,7 @@ export function invokeWorker<Input, Output>(
  * 监听并处理 Worker 请求的通用纯函数（Worker 线程调用）
  */
 export function handleRequest<Input, Output>(
-  handler: (
-    data: Input,
-    send: (result: Output, transfer?: Transferable[]) => void,
-    signal: AbortSignal,
-  ) => unknown,
+  handler: (context: HandleRequestContext<Input, Output>) => unknown,
 ) {
   let controller = new AbortController()
   const activeRequests = new Map<string, (message: string) => void>()
@@ -183,11 +207,22 @@ export function handleRequest<Input, Output>(
         )
       }
 
+      const progress = (value: number) => {
+        if (isSent) return
+        globalThis.postMessage({
+          type: 'progress',
+          id,
+          value,
+        } satisfies Extract<WorkerMessage<Input, Output>, { type: 'progress' }>)
+      }
+
       activeRequests.set(id, sendError)
 
       try {
         controller.signal.throwIfAborted()
-        const returnedResult = await Promise.resolve(handler(data, send, controller.signal))
+        const returnedResult = await Promise.resolve(
+          handler({ data, send, progress, signal: controller.signal }),
+        )
 
         // 如果用户没有通过 send 显式发送，且函数有明确的返回值，则自动帮他发送
         if (!isSent && returnedResult !== undefined) {
