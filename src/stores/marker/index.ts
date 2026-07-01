@@ -1,6 +1,7 @@
 import { useRequest } from 'alova/client'
 import { defineStore } from 'pinia'
 import Api from '@/api'
+import { formatPerformanceTime } from '@/utils/common'
 
 export interface MarkerThin {
   id: string
@@ -17,6 +18,7 @@ export const useMarkerStore = defineStore('item', () => {
   })
 
   const markerSet = computed(() => {
+    const start = performance.now()
     const { markers: source } = data.value
     const { length } = source
     const indexArray = new Array(length) as Array<MarkerThin>
@@ -34,6 +36,7 @@ export const useMarkerStore = defineStore('item', () => {
       indexMap.set(id, thin)
       indexArray[i] = thin
     }
+    console.log('[计算耗时]', formatPerformanceTime(performance.now() - start))
     return { indexArray, indexMap }
   })
 
