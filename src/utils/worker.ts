@@ -8,6 +8,12 @@ export type WorkerMessage<Input, Output> =
       data: Input
     }
   | {
+      type: 'command'
+      id: string
+      command: 'abort'
+      message?: string
+    }
+  | {
       type: 'response'
       id: string
       error: false
@@ -23,6 +29,20 @@ export type WorkerMessage<Input, Output> =
 export interface InvokeWorkerOptions {
   /** 超时时间（毫秒），默认不超时 */
   timeout?: number
+  /** 取消信号，用于中断 worker 的任务 */
+  signal?: AbortSignal
+}
+
+const ABORT_MESSAGE = 'Worker 调用已取消'
+
+const getAbortMessage = (signal?: AbortSignal) => {
+  const reason = signal?.reason
+  if (reason === undefined) return ABORT_MESSAGE
+  if (reason instanceof Error) return reason.message
+  if (reason && typeof reason === 'object' && 'message' in reason) {
+    return String(reason.message)
+  }
+  return String(reason)
 }
 
 /**
@@ -35,29 +55,45 @@ export function invokeWorker<Input, Output>(
 ): Promise<Output> {
   return new Promise<Output>((resolve, reject) => {
     const requestId = crypto.randomUUID()
+    const { signal } = options ?? {}
     let timer: ReturnType<typeof setTimeout> | undefined
+
+    const cleanup = () => {
+      worker.removeEventListener('message', handler)
+      signal?.removeEventListener('abort', abort)
+      if (timer) clearTimeout(timer)
+    }
+
+    const abort = () => {
+      worker.postMessage({
+        type: 'command',
+        id: requestId,
+        command: 'abort',
+        message: getAbortMessage(signal),
+      } satisfies Extract<WorkerMessage<Input, Output>, { type: 'command' }>)
+    }
 
     const handler = ({
       data,
     }: MessageEvent<Extract<WorkerMessage<Input, Output>, { type: 'response' }>>) => {
       if (data.type !== 'response' || requestId !== data.id) return
 
+      cleanup()
+
       if (data.error) {
         reject(new Error(data.message))
       } else {
         resolve(data.result)
       }
-
-      worker.removeEventListener('message', handler)
-      if (timer) clearTimeout(timer)
     }
 
     worker.addEventListener('message', handler)
+    signal?.addEventListener('abort', abort, { once: true })
 
     if (options?.timeout) {
       timer = setTimeout(() => {
-        worker.removeEventListener('message', handler)
-        reject(new Error(`Worker 调用超时（${options.timeout}ms）`))
+        cleanup()
+        reject(new Error(`Worker 调用超时 (${options.timeout}ms)`))
       }, options.timeout)
     }
 
@@ -66,6 +102,8 @@ export function invokeWorker<Input, Output>(
       id: requestId,
       data: payload,
     } satisfies Extract<WorkerMessage<Input, Output>, { type: 'request' }>)
+
+    if (signal?.aborted) abort()
   })
 }
 
@@ -73,22 +111,67 @@ export function invokeWorker<Input, Output>(
  * 监听并处理 Worker 请求的通用纯函数（Worker 线程调用）
  */
 export function handleRequest<Input, Output>(
-  handler: (data: Input, send: (result: Output, transfer?: Transferable[]) => void) => void,
+  handler: (
+    data: Input,
+    send: (result: Output, transfer?: Transferable[]) => void,
+    signal: AbortSignal,
+  ) => unknown,
 ) {
+  let controller = new AbortController()
+  const activeRequests = new Map<string, (message: string) => void>()
+
+  const postError = (id: string, message: string) => {
+    globalThis.postMessage({
+      type: 'response',
+      id,
+      error: true,
+      message,
+    } satisfies Extract<WorkerMessage<Input, Output>, { type: 'response'; error: true }>)
+  }
+
   globalThis.addEventListener(
     'message',
-    async (event: MessageEvent<Extract<WorkerMessage<Input, Output>, { type: 'request' }>>) => {
+    async (event: MessageEvent<WorkerMessage<Input, Output>>) => {
       const msg = event.data
 
-      if (!msg || msg.type !== 'request') return
+      if (!msg) return
+
+      if (msg.type === 'command') {
+        if (msg.command !== 'abort') return
+
+        controller.abort()
+        const message = msg.message ?? ABORT_MESSAGE
+        const abortRequest = activeRequests.get(msg.id)
+
+        if (abortRequest) {
+          abortRequest(message)
+        } else {
+          postError(msg.id, message)
+        }
+        return
+      }
+
+      if (msg.type !== 'request') return
       const { id, data } = msg
+
+      if (controller.signal.aborted) {
+        controller = new AbortController()
+      }
 
       // 标记是否已经发送过响应，防止重复发送
       let isSent = false
 
+      const sendError = (message: string) => {
+        if (isSent) return
+        isSent = true
+        activeRequests.delete(id)
+        postError(id, message)
+      }
+
       const send = (result: Output, transfer?: Transferable[]) => {
         if (isSent) return
         isSent = true
+        activeRequests.delete(id)
         globalThis.postMessage(
           {
             type: 'response',
@@ -100,21 +183,22 @@ export function handleRequest<Input, Output>(
         )
       }
 
+      activeRequests.set(id, sendError)
+
       try {
-        // 使用 Promise.resolve 包裹，完美兼容同步/异步函数，并确保能 catch 到所有异步错误
-        const returnedResult = await handler(data, send)
+        controller.signal.throwIfAborted()
+        const returnedResult = await Promise.resolve(handler(data, send, controller.signal))
 
         // 如果用户没有通过 send 显式发送，且函数有明确的返回值，则自动帮他发送
         if (!isSent && returnedResult !== undefined) {
           send(returnedResult as Output)
         }
       } catch (err) {
-        globalThis.postMessage({
-          type: 'response',
-          id,
-          error: true,
-          message: err instanceof Error ? err.message : String(err),
-        } satisfies Extract<WorkerMessage<Input, Output>, { type: 'response'; error: true }>)
+        sendError(err instanceof Error ? err.message : String(err))
+      } finally {
+        if (!isSent) {
+          activeRequests.delete(id)
+        }
       }
     },
   )
