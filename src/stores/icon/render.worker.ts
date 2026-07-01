@@ -154,12 +154,17 @@ handleRequest<RenderRequest, RenderResult>(
 
     // 请求图片并计算和 set mapping
     const getIcon = createAsyncConcurrencyFactory(async (url: string) => {
+      // 校验 url：忽略查询参数后，末尾必须包含文件后缀名，否则视为非法 url
+      const pathname = url.split('?')[0]!.split('#')[0]!
+      const lastSegment = pathname.substring(pathname.lastIndexOf('/') + 1)
+      if (!/\.[^./]+$/.test(lastSegment)) throw new Error(`非法的图标 url，缺少文件后缀名：${url}`)
+
       const existing = inflightRequests.get(url)
       if (existing) {
         const bmp = await existing
         return bmp
       }
-      const promise = getCacheableAsset(url, signal)
+      const promise = getCacheableAsset(url, { signal, cacheError: true })
         .then((blob) => createImageBitmap(blob))
         .finally(() => inflightRequests.delete(url))
       inflightRequests.set(url, promise)
