@@ -3,7 +3,8 @@ import { defineStore } from 'pinia'
 import { acceptHMRUpdate } from 'pinia'
 import Api from '@/api'
 import type { IconVo } from '@/api/services/main/globals'
-import type { RenderResult } from './render.worker'
+import { invokeWorker } from '@/utils/worker'
+import type { RenderRequest, RenderResult } from './render.worker'
 // oxlint-disable-next-line import/default
 import RenderWorker from './render.worker?worker'
 
@@ -27,23 +28,24 @@ export const useIconStore = defineStore('icon', () => {
     return map
   })
 
-  const render = (iconList: IconVo[]) => {
-    return new Promise<ImageBitmap>((resolve, reject) => {
-      if (!worker) worker = new RenderWorker({ name: 'markerTextureRender' })
-      const scopedWorker = worker
-      const requestId = crypto.randomUUID()
-      const handler = ({ data }: MessageEvent<RenderResult>) => {
-        if (requestId !== data.id) return
-        if (data.error) reject(new Error(data.message))
-        else resolve(data.result)
-        scopedWorker.removeEventListener('message', handler)
-      }
-      scopedWorker.addEventListener('message', handler)
-      scopedWorker.postMessage({
-        id: requestId,
-        data: iconList,
-      })
+  const render = async (iconList: IconVo[]) => {
+    if (!worker) {
+      worker = new RenderWorker({ name: 'markerTextureRender' })
+    }
+    const sendList: { id: number; url: string }[] = []
+    const { length } = iconList
+    for (let i = 0; i < length; i++) {
+      const { id, url } = iconList[i]
+      if (id === undefined || !url) continue
+      sendList.push({ id, url })
+    }
+    const res = await invokeWorker<RenderRequest, RenderResult>(worker, {
+      data: sendList,
+      render: {
+        background: [0, 0, 0, 255],
+      },
     })
+    return res
   }
 
   return {
